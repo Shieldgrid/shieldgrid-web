@@ -157,6 +157,13 @@ export default function CaseDetailPage() {
   const attachedAlertObjects = allAlerts.filter((a) => attachedAlertIds.includes(a.id));
   const unattachedAlerts = allAlerts.filter((a) => !attachedAlertIds.includes(a.id));
 
+  const availableClientIds = Array.from(new Set(
+    attachedAlertObjects
+      .filter((a) => a.connector_id === 'velociraptor')
+      .map((a) => (a.raw_payload as any)?.client_id)
+      .filter((id): id is string => typeof id === 'string' && id.length > 0)
+  ));
+
   const getActionBadge = (action: string) => {
     if (action === 'action_success') return { label: 'SUCCESS', color: 'var(--color-accent)' };
     if (action === 'action_timeout') return { label: 'TIMEOUT', color: '#f59e0b' };
@@ -290,29 +297,25 @@ export default function CaseDetailPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
                     <span style={{ fontSize: '1.1rem' }}>🛡️</span>
                     <h3 style={{ margin: 0 }}>Response Actions</h3>
-                    <span
-                      style={{
-                        fontSize: '0.65rem',
-                        fontWeight: 700,
-                        padding: '0.15rem 0.5rem',
-                        borderRadius: '999px',
-                        background: 'rgba(239,68,68,0.15)',
-                        color: 'var(--color-critical)',
-                        border: '1px solid rgba(239,68,68,0.3)',
-                        letterSpacing: '0.05em',
-                      }}
-                    >
-                      IRREVERSIBLE WITHOUT MANUAL ROLLBACK
-                    </span>
                   </div>
                   <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', margin: 0 }}>
                     Execute network isolation actions against an endpoint via Velociraptor. Requires Admin role.
+                    <br/>
+                    {availableClientIds.length === 0 && (
+                      <span style={{ color: 'var(--color-critical)' }}>
+                        (Requires an attached Velociraptor alert containing a client_id to enable actions)
+                      </span>
+                    )}
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button
                     id="btn-isolate-endpoint"
-                    onClick={() => openActionModal('isolate')}
+                    disabled={availableClientIds.length === 0}
+                    onClick={() => {
+                      setTargetId(availableClientIds[0] || '');
+                      openActionModal('isolate');
+                    }}
                     style={{
                       padding: '0.5rem 1rem',
                       background: 'rgba(239,68,68,0.1)',
@@ -321,17 +324,22 @@ export default function CaseDetailPage() {
                       borderRadius: 'var(--radius-md)',
                       fontWeight: 700,
                       fontSize: '0.875rem',
-                      cursor: 'pointer',
+                      cursor: availableClientIds.length === 0 ? 'not-allowed' : 'pointer',
+                      opacity: availableClientIds.length === 0 ? 0.5 : 1,
                       transition: 'all 0.15s ease',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.2)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}
+                    onMouseEnter={(e) => availableClientIds.length > 0 && (e.currentTarget.style.background = 'rgba(239,68,68,0.2)')}
+                    onMouseLeave={(e) => availableClientIds.length > 0 && (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}
                   >
                     ⛔ Isolate Endpoint
                   </button>
                   <button
                     id="btn-unisolate-endpoint"
-                    onClick={() => openActionModal('unisolate')}
+                    disabled={availableClientIds.length === 0}
+                    onClick={() => {
+                      setTargetId(availableClientIds[0] || '');
+                      openActionModal('unisolate');
+                    }}
                     style={{
                       padding: '0.5rem 1rem',
                       background: 'rgba(16,185,129,0.1)',
@@ -340,11 +348,12 @@ export default function CaseDetailPage() {
                       borderRadius: 'var(--radius-md)',
                       fontWeight: 700,
                       fontSize: '0.875rem',
-                      cursor: 'pointer',
+                      cursor: availableClientIds.length === 0 ? 'not-allowed' : 'pointer',
+                      opacity: availableClientIds.length === 0 ? 0.5 : 1,
                       transition: 'all 0.15s ease',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(16,185,129,0.2)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(16,185,129,0.1)')}
+                    onMouseEnter={(e) => availableClientIds.length > 0 && (e.currentTarget.style.background = 'rgba(16,185,129,0.2)')}
+                    onMouseLeave={(e) => availableClientIds.length > 0 && (e.currentTarget.style.background = 'rgba(16,185,129,0.1)')}
                   >
                     ✅ Unisolate Endpoint
                   </button>
@@ -563,14 +572,14 @@ export default function CaseDetailPage() {
                 <div
                   style={{
                     padding: '0.75rem 1rem',
-                    background: 'rgba(239,68,68,0.08)',
-                    border: '1px solid rgba(239,68,68,0.3)',
+                    background: 'rgba(245,158,11,0.08)',
+                    border: '1px solid rgba(245,158,11,0.3)',
                     borderRadius: 'var(--radius-md)',
                     fontSize: '0.8rem',
-                    color: 'var(--color-critical)',
+                    color: '#f59e0b',
                   }}
                 >
-                  ⚠️ <strong>High-impact action.</strong> Confirm the Velociraptor Client ID is correct before proceeding. Incorrectly isolating an endpoint can disrupt production services.
+                  ⚠️ <strong>High-impact action.</strong> This will drop all network connections to the target. However, it can be instantly reversed by executing the Unisolate action from this same menu.
                 </div>
               )}
 
@@ -580,12 +589,10 @@ export default function CaseDetailPage() {
                   htmlFor="action-target-id"
                   style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.375rem' }}
                 >
-                  Velociraptor Client ID
+                  Target Velociraptor Client ID
                 </label>
-                <input
+                <select
                   id="action-target-id"
-                  type="text"
-                  placeholder="e.g. C.2c537895848a98c2"
                   value={targetId}
                   onChange={(e) => setTargetId(e.target.value)}
                   disabled={actionExecuting}
@@ -600,7 +607,11 @@ export default function CaseDetailPage() {
                     fontFamily: 'monospace',
                     boxSizing: 'border-box',
                   }}
-                />
+                >
+                  {availableClientIds.map((id) => (
+                    <option key={id} value={id}>{id}</option>
+                  ))}
+                </select>
                 <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
                   Connector: <code>{connectorId}</code>
                 </div>
