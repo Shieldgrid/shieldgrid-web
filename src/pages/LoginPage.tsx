@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { loginApi } from '../lib/api';
+import logoSvg from '../assets/shieldgrid-logo-concept-a.svg';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -51,14 +52,11 @@ export default function LoginPage() {
       >
         {/* Header Logo */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <svg width="40" height="40" viewBox="0 0 28 28" fill="none" style={{ margin: '0 auto 0.75rem' }}>
-            <circle cx="14" cy="14" r="13" stroke="var(--color-accent)" strokeWidth="1.5" />
-            <circle cx="14" cy="14" r="3" fill="var(--color-accent)" />
-            <line x1="14" y1="1" x2="14" y2="7" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" />
-            <line x1="14" y1="21" x2="14" y2="27" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" />
-            <line x1="1" y1="14" x2="7" y2="14" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" />
-            <line x1="21" y1="14" x2="27" y2="14" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
+          <img
+            src={logoSvg}
+            alt="Shieldgrid Logo"
+            style={{ width: '48px', height: '48px', margin: '0 auto 0.75rem', display: 'block' }}
+          />
           <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Shieldgrid</h2>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
             SOC Operations Platform

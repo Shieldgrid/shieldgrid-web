@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
+import logoSvg from '../assets/shieldgrid-logo-concept-a.svg';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -39,14 +40,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         {/* Logo Header */}
         <div style={{ padding: '1.5rem 1.25rem', borderBottom: '1px solid var(--color-border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-              <circle cx="14" cy="14" r="13" stroke="var(--color-accent)" strokeWidth="1.5" />
-              <circle cx="14" cy="14" r="3" fill="var(--color-accent)" />
-              <line x1="14" y1="1" x2="14" y2="7" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" />
-              <line x1="14" y1="21" x2="14" y2="27" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" />
-              <line x1="1" y1="14" x2="7" y2="14" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" />
-              <line x1="21" y1="14" x2="27" y2="14" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
+            <img src={logoSvg} alt="Shieldgrid Logo" style={{ width: '32px', height: '32px' }} />
             <div>
               <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>
                 Shieldgrid
