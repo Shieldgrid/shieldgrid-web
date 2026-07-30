@@ -4,8 +4,8 @@ import { useAuth } from '../lib/auth';
 import { loginApi } from '../lib/api';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('admin@shieldgrid.local');
-  const [password, setPassword] = useState('changeme123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
