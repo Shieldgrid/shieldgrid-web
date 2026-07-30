@@ -19,8 +19,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await loginApi(email, password);
-      login(res.token);
+      await loginApi(email, password);
+      await login();
       navigate('/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');

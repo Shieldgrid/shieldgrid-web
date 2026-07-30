@@ -9,7 +9,7 @@ import { ErrorDisplay } from '../components/ErrorDisplay';
 
 export default function CaseDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { token, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   const [caseData, setCaseData] = useState<Case | null>(null);
@@ -24,14 +24,14 @@ export default function CaseDetailPage() {
   const [actionLoading, setActionLoading] = useState(false);
 
   const loadCaseDetails = useCallback(async () => {
-    if (!token || !id) return;
+    if (!isAuthenticated || !id) return;
     setLoading(true);
     setError(null);
     try {
       const [c, alertIds, alertsList] = await Promise.all([
-        fetchCase(token, id),
-        fetchCaseAlerts(token, id),
-        fetchAlerts(token).catch(() => []),
+        fetchCase(id),
+        fetchCaseAlerts(id),
+        fetchAlerts().catch(() => []),
       ]);
       setCaseData(c);
       setAttachedAlertIds(alertIds);
@@ -41,17 +41,17 @@ export default function CaseDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [token, id]);
+  }, [isAuthenticated, id]);
 
   useEffect(() => {
     loadCaseDetails();
   }, [loadCaseDetails]);
 
   const handleUpdateStatus = async (newStatus: string) => {
-    if (!token || !id || !caseData) return;
+    if (!isAuthenticated || !id || !caseData) return;
     setActionLoading(true);
     try {
-      const updated = await updateCase(token, id, { status: newStatus });
+      const updated = await updateCase(id, { status: newStatus });
       setCaseData(updated);
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Failed to update case status');
@@ -61,10 +61,10 @@ export default function CaseDetailPage() {
   };
 
   const handleAssignToSelf = async () => {
-    if (!token || !id || !caseData || !user?.sub) return;
+    if (!isAuthenticated || !id || !caseData || !user?.sub) return;
     setActionLoading(true);
     try {
-      const updated = await updateCase(token, id, { assigned_to: user.sub });
+      const updated = await updateCase(id, { assigned_to: user.sub });
       setCaseData(updated);
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Failed to assign case');
@@ -74,10 +74,10 @@ export default function CaseDetailPage() {
   };
 
   const handleAttachAlert = async () => {
-    if (!token || !id || !selectedAlertToAttach) return;
+    if (!isAuthenticated || !id || !selectedAlertToAttach) return;
     setActionLoading(true);
     try {
-      await attachCaseAlert(token, id, selectedAlertToAttach);
+      await attachCaseAlert(id, selectedAlertToAttach);
       setShowAttachModal(false);
       setSelectedAlertToAttach('');
       await loadCaseDetails();
@@ -89,10 +89,10 @@ export default function CaseDetailPage() {
   };
 
   const handleDetachAlert = async (alertId: string) => {
-    if (!token || !id) return;
+    if (!isAuthenticated || !id) return;
     setActionLoading(true);
     try {
-      await detachCaseAlert(token, id, alertId);
+      await detachCaseAlert(id, alertId);
       await loadCaseDetails();
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Failed to detach alert');

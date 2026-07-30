@@ -36,12 +36,11 @@ async function apiFetch<T>(
   endpoint: string,
   options: {
     method?: string;
-    token?: string | null;
     body?: unknown;
     query?: Record<string, string>;
   } = {}
 ): Promise<T> {
-  const { method = 'GET', token, body, query } = options;
+  const { method = 'GET', body, query } = options;
 
   let url = `${API_BASE_URL}${endpoint}`;
   if (query) {
@@ -53,13 +52,10 @@ async function apiFetch<T>(
     'Content-Type': 'application/json',
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
   const response = await fetch(url, {
     method,
     headers,
+    credentials: 'include', // Automatically send HttpOnly cookies
     body: body ? JSON.stringify(body) : undefined,
   });
 
@@ -84,10 +80,20 @@ async function apiFetch<T>(
 
 // ── Auth Endpoint ────────────────────────────────────────────────────────────
 
-export async function loginApi(email: string, password: string): Promise<{ token: string }> {
-  return apiFetch<{ token: string }>('/api/v1/auth/login', {
+export async function loginApi(email: string, password: string): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>('/api/v1/auth/login', {
     method: 'POST',
     body: { email, password },
+  });
+}
+
+export async function fetchMe(): Promise<import('./types').JwtClaims> {
+  return apiFetch<import('./types').JwtClaims>('/api/v1/auth/me');
+}
+
+export async function logoutApi(): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>('/api/v1/auth/logout', {
+    method: 'POST',
   });
 }
 
@@ -99,59 +105,55 @@ export async function fetchHealth(): Promise<HealthResponse> {
 
 // ── Alerts Endpoints ─────────────────────────────────────────────────────────
 
-export async function fetchAlerts(token: string, since?: string): Promise<NormalizedAlert[]> {
+export async function fetchAlerts(since?: string): Promise<NormalizedAlert[]> {
   const query = since ? { since } : undefined;
-  return apiFetch<NormalizedAlert[]>('/api/v1/alerts', { token, query });
+  return apiFetch<NormalizedAlert[]>('/api/v1/alerts', { query });
 }
 
 // ── Cases Endpoints ──────────────────────────────────────────────────────────
 
-export async function fetchCases(token: string): Promise<Case[]> {
-  return apiFetch<Case[]>('/api/v1/cases', { token });
+export async function fetchCases(): Promise<Case[]> {
+  return apiFetch<Case[]>('/api/v1/cases');
 }
 
-export async function createCase(token: string, payload: CreateCaseRequest): Promise<Case> {
+export async function createCase(payload: CreateCaseRequest): Promise<Case> {
   return apiFetch<Case>('/api/v1/cases', {
     method: 'POST',
-    token,
     body: payload,
   });
 }
 
-export async function fetchCase(token: string, id: string): Promise<Case> {
-  return apiFetch<Case>(`/api/v1/cases/${id}`, { token });
+export async function fetchCase(id: string): Promise<Case> {
+  return apiFetch<Case>(`/api/v1/cases/${id}`);
 }
 
-export async function updateCase(token: string, id: string, payload: UpdateCaseRequest): Promise<Case> {
+export async function updateCase(id: string, payload: UpdateCaseRequest): Promise<Case> {
   return apiFetch<Case>(`/api/v1/cases/${id}`, {
     method: 'PATCH',
-    token,
     body: payload,
   });
 }
 
-export async function fetchCaseAlerts(token: string, id: string): Promise<string[]> {
-  return apiFetch<string[]>(`/api/v1/cases/${id}/alerts`, { token });
+export async function fetchCaseAlerts(id: string): Promise<string[]> {
+  return apiFetch<string[]>(`/api/v1/cases/${id}/alerts`);
 }
 
-export async function attachCaseAlert(token: string, id: string, alertId: string): Promise<void> {
+export async function attachCaseAlert(id: string, alertId: string): Promise<void> {
   const payload: LinkAlertRequest = { alert_id: alertId };
   return apiFetch<void>(`/api/v1/cases/${id}/alerts`, {
     method: 'POST',
-    token,
     body: payload,
   });
 }
 
-export async function detachCaseAlert(token: string, id: string, alertId: string): Promise<void> {
+export async function detachCaseAlert(id: string, alertId: string): Promise<void> {
   return apiFetch<void>(`/api/v1/cases/${id}/alerts/${alertId}`, {
     method: 'DELETE',
-    token,
   });
 }
 
 // ── Audit Logs Endpoint ──────────────────────────────────────────────────────
 
-export async function fetchAuditLogs(token: string): Promise<AuditLog[]> {
-  return apiFetch<AuditLog[]>('/api/v1/audit', { token });
+export async function fetchAuditLogs(): Promise<AuditLog[]> {
+  return apiFetch<AuditLog[]>('/api/v1/audit');
 }

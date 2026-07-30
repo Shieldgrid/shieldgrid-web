@@ -7,7 +7,7 @@ import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { ErrorDisplay } from '../components/ErrorDisplay';
 
 export default function DashboardPage() {
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [alerts, setAlerts] = useState<NormalizedAlert[]>([]);
   const [cases, setCases] = useState<Case[]>([]);
@@ -15,14 +15,14 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   const loadDashboardData = useCallback(async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     setLoading(true);
     setError(null);
     try {
       const [hRes, aRes, cRes] = await Promise.all([
         fetchHealth(),
-        fetchAlerts(token).catch(() => []),
-        fetchCases(token).catch(() => []),
+        fetchAlerts().catch(() => []),
+        fetchCases().catch(() => []),
       ]);
       setHealth(hRes);
       setAlerts(aRes);
@@ -32,7 +32,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     loadDashboardData();

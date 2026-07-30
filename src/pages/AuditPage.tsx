@@ -8,24 +8,24 @@ import { ErrorDisplay } from '../components/ErrorDisplay';
 import { EmptyState } from '../components/EmptyState';
 
 export default function AuditPage() {
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadLogs = useCallback(async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchAuditLogs(token);
+      const data = await fetchAuditLogs();
       setLogs(data);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to fetch audit logs');
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     loadLogs();

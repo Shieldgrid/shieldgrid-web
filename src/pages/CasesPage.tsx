@@ -9,7 +9,7 @@ import { ErrorDisplay } from '../components/ErrorDisplay';
 import { EmptyState } from '../components/EmptyState';
 
 export default function CasesPage() {
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const [cases, setCases] = useState<Case[]>([]);
@@ -22,18 +22,18 @@ export default function CasesPage() {
   const [creating, setCreating] = useState(false);
 
   const loadCases = useCallback(async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchCases(token);
+      const data = await fetchCases();
       setCases(data);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to fetch cases');
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     loadCases();
@@ -41,11 +41,11 @@ export default function CasesPage() {
 
   const handleCreateCase = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token || !newTitle.trim()) return;
+    if (!isAuthenticated || !newTitle.trim()) return;
 
     setCreating(true);
     try {
-      await createCase(token, { title: newTitle.trim() });
+      await createCase({ title: newTitle.trim() });
       setNewTitle('');
       setShowCreateModal(false);
       await loadCases();

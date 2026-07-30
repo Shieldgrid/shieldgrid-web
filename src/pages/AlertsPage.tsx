@@ -8,7 +8,7 @@ import { ErrorDisplay } from '../components/ErrorDisplay';
 import { EmptyState } from '../components/EmptyState';
 
 export default function AlertsPage() {
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [alerts, setAlerts] = useState<NormalizedAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,18 +20,18 @@ export default function AlertsPage() {
   const [selectedAlert, setSelectedAlert] = useState<NormalizedAlert | null>(null);
 
   const loadAlerts = useCallback(async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchAlerts(token);
+      const data = await fetchAlerts();
       setAlerts(data);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to fetch alerts');
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     loadAlerts();
