@@ -3,10 +3,9 @@
  *
  * Auth Context and in-memory JWT token handling.
  *
- * SECURITY REQUIREMENT:
- * The JWT token is stored ONLY in memory (React state).
- * It is NEVER stored in localStorage or sessionStorage to prevent XSS session theft.
- * Page refreshes reset the session and require re-authentication.
+ * SECURITY NOTE:
+ * For Phase 0 development convenience, the JWT token is stored in localStorage 
+ * so session persists on refresh. For production (Phase 1+), consider migrating to HttpOnly cookies.
  */
 
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
@@ -39,14 +38,15 @@ function parseJwt(token: string): JwtClaims | null {
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // In-memory token storage ONLY. Never saved to localStorage or sessionStorage.
-  const [token, setToken] = useState<string | null>(null);
+  // Read token from localStorage on initial load to persist session across refreshes
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('jwt_token'));
 
   const user = useMemo(() => {
     if (!token) return null;
     const claims = parseJwt(token);
     if (claims && claims.exp * 1000 < Date.now()) {
       // Token expired
+      localStorage.removeItem('jwt_token');
       return null;
     }
     return claims;
@@ -57,10 +57,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [token, user]);
 
   const login = useCallback((newToken: string) => {
+    localStorage.setItem('jwt_token', newToken);
     setToken(newToken);
   }, []);
 
   const logout = useCallback(() => {
+    localStorage.removeItem('jwt_token');
     setToken(null);
   }, []);
 
