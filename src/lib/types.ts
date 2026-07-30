@@ -63,3 +63,18 @@ export interface JwtClaims {
   role: string;
   exp: number;
 }
+
+// ── Response Actions ─────────────────────────────────────────────────────────
+
+export interface ActionRequest {
+  connector_id: string;
+  action_type: 'isolate' | 'unisolate';
+  target_id: string;
+}
+
+export interface ActionResult {
+  success: boolean;
+  detail: string;
+  is_timeout: boolean;
+  timestamp: string;
+}

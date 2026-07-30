@@ -12,6 +12,8 @@ import type {
   UpdateCaseRequest,
   LinkAlertRequest,
   AuditLog,
+  ActionRequest,
+  ActionResult,
 } from './types';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
@@ -156,4 +158,20 @@ export async function detachCaseAlert(id: string, alertId: string): Promise<void
 
 export async function fetchAuditLogs(): Promise<AuditLog[]> {
   return apiFetch<AuditLog[]>('/api/v1/audit');
+}
+
+// ── Case Actions Endpoints ────────────────────────────────────────────────────
+
+export async function executeAction(
+  caseId: string,
+  payload: ActionRequest
+): Promise<ActionResult> {
+  return apiFetch<ActionResult>(`/api/v1/cases/${caseId}/actions`, {
+    method: 'POST',
+    body: payload,
+  });
+}
+
+export async function fetchCaseActions(caseId: string): Promise<AuditLog[]> {
+  return apiFetch<AuditLog[]>(`/api/v1/cases/${caseId}/actions`);
 }

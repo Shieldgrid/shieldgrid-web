@@ -2,8 +2,17 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { useAuth } from '../lib/auth';
-import { fetchCase, updateCase, fetchCaseAlerts, attachCaseAlert, detachCaseAlert, fetchAlerts } from '../lib/api';
-import type { Case, NormalizedAlert } from '../lib/types';
+import {
+  fetchCase,
+  updateCase,
+  fetchCaseAlerts,
+  attachCaseAlert,
+  detachCaseAlert,
+  fetchAlerts,
+  executeAction,
+  fetchCaseActions,
+} from '../lib/api';
+import type { Case, NormalizedAlert, ActionResult, AuditLog } from '../lib/types';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { ErrorDisplay } from '../components/ErrorDisplay';
 
@@ -15,6 +24,7 @@ export default function CaseDetailPage() {
   const [caseData, setCaseData] = useState<Case | null>(null);
   const [attachedAlertIds, setAttachedAlertIds] = useState<string[]>([]);
   const [allAlerts, setAllAlerts] = useState<NormalizedAlert[]>([]);
+  const [actionHistory, setActionHistory] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,19 +33,29 @@ export default function CaseDetailPage() {
   const [selectedAlertToAttach, setSelectedAlertToAttach] = useState<string>('');
   const [actionLoading, setActionLoading] = useState(false);
 
+  // Response action modal state
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [actionType, setActionType] = useState<'isolate' | 'unisolate'>('isolate');
+  const [targetId, setTargetId] = useState('');
+  const [connectorId] = useState('velociraptor');
+  const [actionExecuting, setActionExecuting] = useState(false);
+  const [actionResult, setActionResult] = useState<ActionResult | null>(null);
+
   const loadCaseDetails = useCallback(async () => {
     if (!isAuthenticated || !id) return;
     setLoading(true);
     setError(null);
     try {
-      const [c, alertIds, alertsList] = await Promise.all([
+      const [c, alertIds, alertsList, history] = await Promise.all([
         fetchCase(id),
         fetchCaseAlerts(id),
         fetchAlerts().catch(() => []),
+        fetchCaseActions(id).catch(() => []),
       ]);
       setCaseData(c);
       setAttachedAlertIds(alertIds);
       setAllAlerts(alertsList);
+      setActionHistory(history);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load case details');
     } finally {
@@ -101,8 +121,49 @@ export default function CaseDetailPage() {
     }
   };
 
+  const handleExecuteAction = async () => {
+    if (!id || !targetId.trim()) return;
+    setActionExecuting(true);
+    setActionResult(null);
+    try {
+      const result = await executeAction(id, {
+        connector_id: connectorId,
+        action_type: actionType,
+        target_id: targetId.trim(),
+      });
+      setActionResult(result);
+      // Refresh action history
+      const history = await fetchCaseActions(id).catch(() => []);
+      setActionHistory(history);
+    } catch (err: unknown) {
+      setActionResult({
+        success: false,
+        detail: err instanceof Error ? err.message : 'Request failed',
+        is_timeout: false,
+        timestamp: new Date().toISOString(),
+      });
+    } finally {
+      setActionExecuting(false);
+    }
+  };
+
+  const openActionModal = (type: 'isolate' | 'unisolate') => {
+    setActionType(type);
+    setTargetId('');
+    setActionResult(null);
+    setShowActionModal(true);
+  };
+
   const attachedAlertObjects = allAlerts.filter((a) => attachedAlertIds.includes(a.id));
   const unattachedAlerts = allAlerts.filter((a) => !attachedAlertIds.includes(a.id));
+
+  const getActionBadge = (action: string) => {
+    if (action === 'action_success') return { label: 'SUCCESS', color: 'var(--color-accent)' };
+    if (action === 'action_timeout') return { label: 'TIMEOUT', color: '#f59e0b' };
+    if (action === 'action_failure') return { label: 'FAILED', color: 'var(--color-critical)' };
+    if (action === 'action_request') return { label: 'REQUESTED', color: 'var(--color-text-muted)' };
+    return { label: action.toUpperCase(), color: 'var(--color-text-muted)' };
+  };
 
   return (
     <Layout>
@@ -212,6 +273,140 @@ export default function CaseDetailPage() {
               </div>
             </div>
 
+            {/* ── Response Actions Section ──────────────────────────────── */}
+            <div
+              style={{
+                background: 'var(--color-bg-surface)',
+                border: '1px solid rgba(239,68,68,0.3)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '1.5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                    <span style={{ fontSize: '1.1rem' }}>🛡️</span>
+                    <h3 style={{ margin: 0 }}>Response Actions</h3>
+                    <span
+                      style={{
+                        fontSize: '0.65rem',
+                        fontWeight: 700,
+                        padding: '0.15rem 0.5rem',
+                        borderRadius: '999px',
+                        background: 'rgba(239,68,68,0.15)',
+                        color: 'var(--color-critical)',
+                        border: '1px solid rgba(239,68,68,0.3)',
+                        letterSpacing: '0.05em',
+                      }}
+                    >
+                      IRREVERSIBLE WITHOUT MANUAL ROLLBACK
+                    </span>
+                  </div>
+                  <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', margin: 0 }}>
+                    Execute network isolation actions against an endpoint via Velociraptor. Requires Admin role.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    id="btn-isolate-endpoint"
+                    onClick={() => openActionModal('isolate')}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: 'rgba(239,68,68,0.1)',
+                      color: 'var(--color-critical)',
+                      border: '1px solid rgba(239,68,68,0.4)',
+                      borderRadius: 'var(--radius-md)',
+                      fontWeight: 700,
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.2)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}
+                  >
+                    ⛔ Isolate Endpoint
+                  </button>
+                  <button
+                    id="btn-unisolate-endpoint"
+                    onClick={() => openActionModal('unisolate')}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: 'rgba(16,185,129,0.1)',
+                      color: '#10b981',
+                      border: '1px solid rgba(16,185,129,0.4)',
+                      borderRadius: 'var(--radius-md)',
+                      fontWeight: 700,
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(16,185,129,0.2)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(16,185,129,0.1)')}
+                  >
+                    ✅ Unisolate Endpoint
+                  </button>
+                </div>
+              </div>
+
+              {/* Action History */}
+              {actionHistory.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>
+                    ACTION HISTORY ({actionHistory.length})
+                  </div>
+                  {actionHistory.map((log) => {
+                    const badge = getActionBadge(log.action);
+                    return (
+                      <div
+                        key={log.id}
+                        style={{
+                          padding: '0.75rem 1rem',
+                          borderRadius: 'var(--radius-md)',
+                          background: 'var(--color-bg-base)',
+                          border: '1px solid var(--color-border)',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '0.75rem',
+                          fontSize: '0.8rem',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '0.65rem',
+                            fontWeight: 700,
+                            padding: '0.15rem 0.4rem',
+                            borderRadius: '4px',
+                            background: `${badge.color}20`,
+                            color: badge.color,
+                            border: `1px solid ${badge.color}50`,
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {badge.label}
+                        </span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <code style={{ color: 'var(--color-text-secondary)', wordBreak: 'break-all', fontSize: '0.75rem' }}>
+                            {log.target}
+                          </code>
+                        </div>
+                        <span style={{ color: 'var(--color-text-muted)', whiteSpace: 'nowrap', fontSize: '0.72rem', flexShrink: 0 }}>
+                          {new Date(log.timestamp).toLocaleString()}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', fontSize: '0.875rem', margin: 0 }}>
+                  No response actions have been executed for this case yet.
+                </p>
+              )}
+            </div>
+
             {/* Linked Evidence & Alerts Section */}
             <div
               style={{
@@ -226,7 +421,7 @@ export default function CaseDetailPage() {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <h3>Linked Alerts & Telemetry Evidence ({attachedAlertIds.length})</h3>
+                  <h3>Linked Alerts &amp; Telemetry Evidence ({attachedAlertIds.length})</h3>
                   <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>
                     Alerts attached to this case for evidence analysis.
                   </p>
@@ -321,15 +516,199 @@ export default function CaseDetailPage() {
           </>
         )}
 
+        {/* ── Response Action Modal ─────────────────────────────────────── */}
+        {showActionModal && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(11, 27, 51, 0.85)',
+              backdropFilter: 'blur(6px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 200,
+            }}
+          >
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '480px',
+                background: 'var(--color-bg-surface)',
+                border: `1px solid ${actionType === 'isolate' ? 'rgba(239,68,68,0.4)' : 'rgba(16,185,129,0.4)'}`,
+                borderRadius: 'var(--radius-lg)',
+                padding: '2rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.25rem',
+              }}
+            >
+              {/* Modal header */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
+                  <span style={{ fontSize: '1.25rem' }}>{actionType === 'isolate' ? '⛔' : '✅'}</span>
+                  <h2 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 700 }}>
+                    {actionType === 'isolate' ? 'Isolate Endpoint' : 'Unisolate Endpoint'}
+                  </h2>
+                </div>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                  {actionType === 'isolate'
+                    ? 'This will apply nftables network quarantine rules via Velociraptor, cutting off all traffic except DNS and Velociraptor server access.'
+                    : 'This will remove the nftables quarantine rules via Velociraptor, restoring full network access.'}
+                </p>
+              </div>
+
+              {/* Warning banner */}
+              {actionType === 'isolate' && (
+                <div
+                  style={{
+                    padding: '0.75rem 1rem',
+                    background: 'rgba(239,68,68,0.08)',
+                    border: '1px solid rgba(239,68,68,0.3)',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.8rem',
+                    color: 'var(--color-critical)',
+                  }}
+                >
+                  ⚠️ <strong>High-impact action.</strong> Confirm the Velociraptor Client ID is correct before proceeding. Incorrectly isolating an endpoint can disrupt production services.
+                </div>
+              )}
+
+              {/* Target input */}
+              <div>
+                <label
+                  htmlFor="action-target-id"
+                  style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.375rem' }}
+                >
+                  Velociraptor Client ID
+                </label>
+                <input
+                  id="action-target-id"
+                  type="text"
+                  placeholder="e.g. C.2c537895848a98c2"
+                  value={targetId}
+                  onChange={(e) => setTargetId(e.target.value)}
+                  disabled={actionExecuting}
+                  style={{
+                    width: '100%',
+                    padding: '0.625rem 0.875rem',
+                    borderRadius: 'var(--radius-md)',
+                    background: 'var(--color-bg-base)',
+                    border: '1px solid var(--color-border)',
+                    color: 'var(--color-text-primary)',
+                    fontSize: '0.875rem',
+                    fontFamily: 'monospace',
+                    boxSizing: 'border-box',
+                  }}
+                />
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                  Connector: <code>{connectorId}</code>
+                </div>
+              </div>
+
+              {/* Result feedback */}
+              {actionExecuting && (
+                <div
+                  style={{
+                    padding: '0.75rem 1rem',
+                    background: 'rgba(99,102,241,0.08)',
+                    border: '1px solid rgba(99,102,241,0.3)',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.8rem',
+                    color: '#a5b4fc',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</span>
+                  Executing — polling Velociraptor for flow status (up to 30s)…
+                </div>
+              )}
+
+              {actionResult && (
+                <div
+                  style={{
+                    padding: '0.875rem 1rem',
+                    background: actionResult.success
+                      ? 'rgba(16,185,129,0.08)'
+                      : actionResult.is_timeout
+                      ? 'rgba(245,158,11,0.08)'
+                      : 'rgba(239,68,68,0.08)',
+                    border: `1px solid ${actionResult.success ? 'rgba(16,185,129,0.3)' : actionResult.is_timeout ? 'rgba(245,158,11,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.8rem',
+                  }}
+                >
+                  <div style={{
+                    fontWeight: 700,
+                    color: actionResult.success ? '#10b981' : actionResult.is_timeout ? '#f59e0b' : 'var(--color-critical)',
+                    marginBottom: '0.25rem',
+                  }}>
+                    {actionResult.success ? '✅ Success' : actionResult.is_timeout ? '⏱ Timeout — Outcome Unknown' : '❌ Failed'}
+                  </div>
+                  <div style={{ color: 'var(--color-text-secondary)' }}>{actionResult.detail}</div>
+                  {actionResult.is_timeout && (
+                    <div style={{ marginTop: '0.375rem', color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
+                      The action was dispatched but the endpoint did not confirm within 30s. It may still complete. Verify manually in Velociraptor.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  onClick={() => { setShowActionModal(false); setActionResult(null); }}
+                  disabled={actionExecuting}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: 'transparent',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-md)',
+                    color: 'var(--color-text-secondary)',
+                    cursor: actionExecuting ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {actionResult ? 'Close' : 'Cancel'}
+                </button>
+                {!actionResult && (
+                  <button
+                    id={`btn-confirm-${actionType}`}
+                    type="button"
+                    disabled={!targetId.trim() || actionExecuting}
+                    onClick={handleExecuteAction}
+                    style={{
+                      padding: '0.5rem 1.25rem',
+                      background: actionType === 'isolate' ? 'var(--color-critical)' : '#10b981',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 'var(--radius-md)',
+                      fontWeight: 700,
+                      fontSize: '0.875rem',
+                      cursor: !targetId.trim() || actionExecuting ? 'not-allowed' : 'pointer',
+                      opacity: !targetId.trim() || actionExecuting ? 0.6 : 1,
+                    }}
+                  >
+                    {actionExecuting
+                      ? 'Executing…'
+                      : actionType === 'isolate'
+                      ? 'Confirm Isolate'
+                      : 'Confirm Unisolate'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Modal for Linking Alert */}
         {showAttachModal && (
           <div
             style={{
               position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
+              top: 0, left: 0, right: 0, bottom: 0,
               background: 'rgba(11, 27, 51, 0.8)',
               backdropFilter: 'blur(4px)',
               display: 'flex',
