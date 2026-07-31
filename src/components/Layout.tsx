@@ -22,6 +22,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { label: 'Cases', path: '/cases', icon: '📁' },
     { label: 'Connectors', path: '/connectors', icon: '🔌', role: 'admin' },
     { label: 'Audit Log', path: '/audit', icon: '📜', role: 'admin' },
+    { label: 'VQL Shell', path: '/velociraptor', icon: '🖥️', role: 'admin' },
     { label: 'AI Dashboard', path: '/ai', icon: '🧠' },
   ];
 

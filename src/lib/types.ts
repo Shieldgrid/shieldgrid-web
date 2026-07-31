@@ -79,3 +79,31 @@ export interface ActionResult {
   detail: string;
   timestamp: string;
 }
+
+// ── Velociraptor VQL Shell ────────────────────────────────────────────────────
+
+export interface VqlClient {
+  client_id: string;
+  hostname?: string | null;
+  os?: string | null;
+  arch?: string | null;
+  client_version?: string | null;
+  last_seen_at?: number | null;
+}
+
+export interface VqlArtifact {
+  name: string;
+  description?: string | null;
+}
+
+export interface VqlQueryRequest {
+  vql: string;
+  client_id?: string | null;
+}
+
+export interface VqlQueryResponse {
+  rows: Record<string, unknown>[];
+  truncated: boolean;
+  elapsed_ms: number;
+  error?: string | null;
+}

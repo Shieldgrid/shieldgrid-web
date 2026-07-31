@@ -18,6 +18,7 @@ import CaseDetailPage from '../pages/CaseDetailPage';
 import ConnectorsPage from '../pages/ConnectorsPage';
 import AuditPage from '../pages/AuditPage';
 import AiDashboardPage from '../pages/AiDashboardPage';
+import VelociraptorPage from '../pages/VelociraptorPage';
 
 function RouteConfig() {
   const { logout } = useAuth();
@@ -94,6 +95,15 @@ function RouteConfig() {
         element={
           <ProtectedRoute>
             <AiDashboardPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/velociraptor"
+        element={
+          <ProtectedRoute requireRole="admin">
+            <VelociraptorPage />
           </ProtectedRoute>
         }
       />
