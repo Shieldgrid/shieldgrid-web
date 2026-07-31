@@ -1,49 +1,32 @@
-# Shieldgrid Web
+# React + TypeScript + Vite
 
-The operator dashboard for **Shieldgrid** — the frontend analysts use to view alerts, manage cases, and configure connectors.
+This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
-## Status
+Currently, two official plugins are available:
 
-🚧 Phase 0 — foundation. Talks to [shieldgrid-core](https://github.com/Shieldgrid/shieldgrid-core) over REST.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## Stack
+## React Compiler
 
-- **Framework:** React + TypeScript
-- **API client:** typed client generated from / matching shieldgrid-core's `/api/v1` contract
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Design principle
+## Expanding the Oxlint configuration
 
-The UI mirrors the core data model, not the other way around: Dashboard → Alerts → Cases → Connectors → Admin. Connector metadata (name, icon, status) is data-driven from the API — adding a new connector on the backend should never require a frontend release.
+If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
 
-## Getting Started
-
-```bash
-git clone https://github.com/Shieldgrid/shieldgrid-web.git
-cd shieldgrid-web
-
-npm install
-
-# point at your local shieldgrid-core instance
-cp .env.example .env
-
-npm run dev
+```json
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc"],
+  "options": {
+    "typeAware": true
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+  }
+}
 ```
 
-Requires a running `shieldgrid-core` instance (see that repo's README) for the app to have data to display.
-
-## Roadmap
-
-Tracks the phases in [shieldgrid-core](https://github.com/Shieldgrid/shieldgrid-core#roadmap):
-
-- Phase 0: read-only alert view
-- Phase 1: case management UI, login/auth
-- Phase 2: connector configuration screens
-- Phase 3: response-action UI (block IP, isolate host, etc.)
-
-## License
-
-[AGPL-3.0](LICENSE)
-
-## Contributing
-
-Issues and PRs welcome. Please open an issue before large UI changes so we can align on design direction first.
+See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
