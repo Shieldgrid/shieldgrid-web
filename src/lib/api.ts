@@ -7,6 +7,7 @@
 import type {
   HealthResponse,
   NormalizedAlert,
+  AlertStatus,
   Case,
   CreateCaseRequest,
   UpdateCaseRequest,
@@ -18,6 +19,7 @@ import type {
   VqlArtifact,
   VqlQueryRequest,
   VqlQueryResponse,
+  IngestJob,
 } from './types';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
@@ -103,6 +105,10 @@ export async function logoutApi(): Promise<{ message: string }> {
   });
 }
 
+export async function refreshSession(): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>('/api/v1/auth/refresh');
+}
+
 // ── Health / Connectors Endpoint ─────────────────────────────────────────────
 
 export async function fetchHealth(): Promise<HealthResponse> {
@@ -114,6 +120,19 @@ export async function fetchHealth(): Promise<HealthResponse> {
 export async function fetchAlerts(since?: string): Promise<NormalizedAlert[]> {
   const query = since ? { since } : undefined;
   return apiFetch<NormalizedAlert[]>('/api/v1/alerts', { query });
+}
+
+export async function updateAlertStatus(id: string, status: AlertStatus): Promise<NormalizedAlert> {
+  return apiFetch<NormalizedAlert>(`/api/v1/alerts/${id}`, {
+    method: 'PATCH',
+    body: { status },
+  });
+}
+
+// ── Ingest Jobs Endpoints ─────────────────────────────────────────────────────
+
+export async function fetchJobs(): Promise<IngestJob[]> {
+  return apiFetch<IngestJob[]>('/api/v1/jobs');
 }
 
 // ── Cases Endpoints ──────────────────────────────────────────────────────────
