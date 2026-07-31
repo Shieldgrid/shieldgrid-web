@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Layout } from '../components/Layout';
 import { useAuth } from '../lib/auth';
-import { fetchAlerts } from '../lib/api';
-import type { NormalizedAlert, Severity } from '../lib/types';
+import { fetchAlerts, updateAlertStatus } from '../lib/api';
+import type { NormalizedAlert, Severity, AlertStatus } from '../lib/types';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { ErrorDisplay } from '../components/ErrorDisplay';
 import { EmptyState } from '../components/EmptyState';
@@ -36,6 +36,16 @@ export default function AlertsPage() {
   useEffect(() => {
     loadAlerts();
   }, [loadAlerts]);
+
+  const changeStatus = useCallback(async (alert: NormalizedAlert, status: AlertStatus) => {
+    try {
+      const updated = await updateAlertStatus(alert.id, status);
+      setAlerts((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+      setSelectedAlert(updated);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to update alert status');
+    }
+  }, []);
 
   // Derived filter options
   const connectors = useMemo(() => {
@@ -273,6 +283,21 @@ export default function AlertsPage() {
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>CONNECTOR</div>
                     <div style={{ fontSize: '0.875rem', color: 'var(--color-text-primary)' }}>{selectedAlert.connector_id}</div>
                   </div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>
+                    STATUS (LIFECYCLE)
+                  </div>
+                  <select
+                    value={selectedAlert.status}
+                    onChange={(e) => changeStatus(selectedAlert, e.target.value as AlertStatus)}
+                    style={{ ...selectStyle, width: '100%' }}
+                  >
+                    <option value="open">Open</option>
+                    <option value="acknowledged">Acknowledged</option>
+                    <option value="closed">Closed</option>
+                  </select>
                 </div>
 
                 <div>

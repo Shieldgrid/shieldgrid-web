@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Layout } from '../components/Layout';
 import { useAuth } from '../lib/auth';
-import { fetchHealth, fetchAlerts, fetchCases } from '../lib/api';
-import type { HealthResponse, NormalizedAlert, Case } from '../lib/types';
+import { fetchHealth, fetchAlerts, fetchCases, fetchJobs } from '../lib/api';
+import type { HealthResponse, NormalizedAlert, Case, IngestJob } from '../lib/types';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { ErrorDisplay } from '../components/ErrorDisplay';
 
@@ -11,6 +11,7 @@ export default function DashboardPage() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [alerts, setAlerts] = useState<NormalizedAlert[]>([]);
   const [cases, setCases] = useState<Case[]>([]);
+  const [jobs, setJobs] = useState<IngestJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,14 +20,16 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const [hRes, aRes, cRes] = await Promise.all([
+      const [hRes, aRes, cRes, jRes] = await Promise.all([
         fetchHealth(),
         fetchAlerts().catch(() => []),
         fetchCases().catch(() => []),
+        fetchJobs().catch(() => []),
       ]);
       setHealth(hRes);
       setAlerts(aRes);
       setCases(cRes);
+      setJobs(jRes);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
     } finally {
@@ -40,6 +43,15 @@ export default function DashboardPage() {
 
   const openCasesCount = cases.filter((c) => c.status.toLowerCase() === 'open').length;
   const criticalAlertsCount = alerts.filter((a) => a.severity === 'critical' || a.severity === 'high').length;
+  const enabledJobs = jobs.filter((j) => j.enabled);
+  const lastIngestAt = enabledJobs
+    .map((j) => j.last_run_at)
+    .filter((t): t is string => !!t)
+    .map((t) => new Date(t).getTime())
+    .sort((a, b) => b - a)[0];
+  const lastIngestLabel = lastIngestAt
+    ? `Last ingest ${relativeTime(lastIngestAt)}`
+    : 'Awaiting first ingest';
 
   return (
     <Layout>
@@ -77,6 +89,12 @@ export default function DashboardPage() {
                 value={openCasesCount}
                 subtitle={`${cases.length} Total Cases`}
                 color="var(--color-warning)"
+              />
+              <MetricCard
+                title="Scheduled Ingest Jobs"
+                value={enabledJobs.length}
+                subtitle={lastIngestLabel}
+                color="var(--color-success)"
               />
             </div>
 
@@ -290,4 +308,13 @@ function MetricCard({ title, value, subtitle, color }: { title: string; value: n
       <p style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', margin: 0 }}>{subtitle}</p>
     </div>
   );
+}
+
+function relativeTime(timestampMs: number): string {
+  const seconds = Math.max(1, Math.floor((Date.now() - timestampMs) / 1000));
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  return `${hours}h ago`;
 }

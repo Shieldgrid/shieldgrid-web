@@ -9,11 +9,16 @@ export type AlertStatus = 'open' | 'acknowledged' | 'closed';
 
 export interface NormalizedAlert {
   id: string;
+  source_id: string;
   connector_id: string;
   severity: Severity;
   source: string;
   timestamp: string;
   raw_payload: Record<string, unknown> | unknown;
+  status: AlertStatus;
+}
+
+export interface UpdateAlertRequest {
   status: AlertStatus;
 }
 
@@ -62,6 +67,23 @@ export interface JwtClaims {
   sub: string;
   role: string;
   exp: number;
+}
+
+// ── Ingest Jobs ───────────────────────────────────────────────────────────────
+
+export interface IngestJob {
+  id: string;
+  connector_id: string;
+  name: string;
+  interval_minutes: number;
+  enabled: boolean;
+  last_run_at?: string | null;
+  last_status?: string | null;
+  last_error?: string | null;
+  last_watermark?: string | null;
+  next_run_at?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // ── Response Actions ─────────────────────────────────────────────────────────
