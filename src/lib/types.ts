@@ -72,9 +72,10 @@ export interface ActionRequest {
   target_id: string;
 }
 
+export type ActionStatus = 'success' | 'failure' | 'timeout';
+
 export interface ActionResult {
-  success: boolean;
+  status: ActionStatus;
   detail: string;
-  is_timeout: boolean;
   timestamp: string;
 }

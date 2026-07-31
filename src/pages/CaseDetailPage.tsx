@@ -137,9 +137,8 @@ export default function CaseDetailPage() {
       setActionHistory(history);
     } catch (err: unknown) {
       setActionResult({
-        success: false,
+        status: 'failure',
         detail: err instanceof Error ? err.message : 'Request failed',
-        is_timeout: false,
         timestamp: new Date().toISOString(),
       });
     } finally {
@@ -641,25 +640,25 @@ export default function CaseDetailPage() {
                 <div
                   style={{
                     padding: '0.875rem 1rem',
-                    background: actionResult.success
+                    background: actionResult.status === 'success'
                       ? 'rgba(16,185,129,0.08)'
-                      : actionResult.is_timeout
+                      : actionResult.status === 'timeout'
                       ? 'rgba(245,158,11,0.08)'
                       : 'rgba(239,68,68,0.08)',
-                    border: `1px solid ${actionResult.success ? 'rgba(16,185,129,0.3)' : actionResult.is_timeout ? 'rgba(245,158,11,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                    border: `1px solid ${actionResult.status === 'success' ? 'rgba(16,185,129,0.3)' : actionResult.status === 'timeout' ? 'rgba(245,158,11,0.3)' : 'rgba(239,68,68,0.3)'}`,
                     borderRadius: 'var(--radius-md)',
                     fontSize: '0.8rem',
                   }}
                 >
                   <div style={{
                     fontWeight: 700,
-                    color: actionResult.success ? '#10b981' : actionResult.is_timeout ? '#f59e0b' : 'var(--color-critical)',
+                    color: actionResult.status === 'success' ? '#10b981' : actionResult.status === 'timeout' ? '#f59e0b' : 'var(--color-critical)',
                     marginBottom: '0.25rem',
                   }}>
-                    {actionResult.success ? '✅ Success' : actionResult.is_timeout ? '⏱ Timeout — Outcome Unknown' : '❌ Failed'}
+                    {actionResult.status === 'success' ? '✅ Success' : actionResult.status === 'timeout' ? '⏱ Timeout — Outcome Unknown' : '❌ Failed'}
                   </div>
                   <div style={{ color: 'var(--color-text-secondary)' }}>{actionResult.detail}</div>
-                  {actionResult.is_timeout && (
+                  {actionResult.status === 'timeout' && (
                     <div style={{ marginTop: '0.375rem', color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
                       The action was dispatched but the endpoint did not confirm within 30s. It may still complete. Verify manually in Velociraptor.
                     </div>
