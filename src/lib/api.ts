@@ -14,6 +14,10 @@ import type {
   AuditLog,
   ActionRequest,
   ActionResult,
+  VqlClient,
+  VqlArtifact,
+  VqlQueryRequest,
+  VqlQueryResponse,
 } from './types';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
@@ -174,4 +178,27 @@ export async function executeAction(
 
 export async function fetchCaseActions(caseId: string): Promise<AuditLog[]> {
   return apiFetch<AuditLog[]>(`/api/v1/cases/${caseId}/actions`);
+}
+
+// ── Velociraptor VQL Shell Endpoints ──────────────────────────────────────────
+
+export interface VqlListResponse<T> {
+  rows: T[];
+  truncated?: boolean;
+  elapsed_ms: number;
+}
+
+export async function fetchVeloClients(): Promise<VqlListResponse<VqlClient>> {
+  return apiFetch<VqlListResponse<VqlClient>>('/api/v1/velociraptor/clients');
+}
+
+export async function fetchVeloArtifacts(): Promise<VqlListResponse<VqlArtifact>> {
+  return apiFetch<VqlListResponse<VqlArtifact>>('/api/v1/velociraptor/artifacts');
+}
+
+export async function runVqlQuery(payload: VqlQueryRequest): Promise<VqlQueryResponse> {
+  return apiFetch<VqlQueryResponse>('/api/v1/velociraptor/query', {
+    method: 'POST',
+    body: payload,
+  });
 }
