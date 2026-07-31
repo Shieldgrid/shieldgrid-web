@@ -17,6 +17,7 @@ import CasesPage from '../pages/CasesPage';
 import CaseDetailPage from '../pages/CaseDetailPage';
 import ConnectorsPage from '../pages/ConnectorsPage';
 import AuditPage from '../pages/AuditPage';
+import AiDashboardPage from '../pages/AiDashboardPage';
 
 function RouteConfig() {
   const { logout } = useAuth();
@@ -84,6 +85,15 @@ function RouteConfig() {
         element={
           <ProtectedRoute requireRole="admin">
             <AuditPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/ai"
+        element={
+          <ProtectedRoute>
+            <AiDashboardPage />
           </ProtectedRoute>
         }
       />

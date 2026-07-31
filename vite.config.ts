@@ -22,6 +22,11 @@ export default defineConfig(({ mode }) => {
           target,
           changeOrigin: true,
         },
+        '/ai-api': {
+          target: env.VITE_AI_PROXY_TARGET || 'https://api.ai.camer.digital/v1',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/ai-api/, ''),
+        },
       },
     },
   };
