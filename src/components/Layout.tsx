@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
+import { ThreatIntelDrawer } from './ThreatIntelDrawer';
 import logoSvg from '../assets/shieldgrid-logo-concept-a.svg';
 
 interface LayoutProps {
@@ -10,6 +11,7 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [intelDrawerOpen, setIntelDrawerOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -20,6 +22,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { label: 'Dashboard', path: '/dashboard', icon: '📊' },
     { label: 'Alerts', path: '/alerts', icon: '⚡' },
     { label: 'Cases', path: '/cases', icon: '📁' },
+    { label: 'Actions', path: '/actions', icon: '🛡️' },
+    { label: 'Detection Rules', path: '/rules', icon: '🎯' },
+    { label: 'MITRE Matrix', path: '/mitre', icon: '🗺️' },
     { label: 'Connectors', path: '/connectors', icon: '🔌', role: 'admin' },
     { label: 'Audit Log', path: '/audit', icon: '📜', role: 'admin' },
     { label: 'VQL Shell', path: '/velociraptor', icon: '🖥️', role: 'admin' },
@@ -83,6 +88,30 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           })}
         </nav>
 
+        {/* Threat Intel Quick Action */}
+        <div style={{ padding: '0 0.75rem 0.75rem 0.75rem' }}>
+          <button
+            onClick={() => setIntelDrawerOpen(true)}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              padding: '0.625rem',
+              background: 'rgba(99, 102, 241, 0.15)',
+              border: '1px solid rgba(99, 102, 241, 0.3)',
+              borderRadius: 'var(--radius-md)',
+              color: '#818cf8',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            <span>⚡</span> Threat Intel
+          </button>
+        </div>
+
         {/* User Info / Logout */}
         <div style={{ padding: '1rem 1.25rem', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
@@ -115,6 +144,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>{children}</div>
       </main>
+
+      {/* ── Threat Intelligence Drawer ───────────────────────────────────── */}
+      <ThreatIntelDrawer
+        isOpen={intelDrawerOpen}
+        onClose={() => setIntelDrawerOpen(false)}
+      />
     </div>
   );
 };
