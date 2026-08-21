@@ -19,6 +19,13 @@ import ConnectorsPage from '../pages/ConnectorsPage';
 import AuditPage from '../pages/AuditPage';
 import AiDashboardPage from '../pages/AiDashboardPage';
 import VelociraptorPage from '../pages/VelociraptorPage';
+import ShieldgridActionsPage from '../pages/ShieldgridActionsPage';
+import DetectionRulesPage from '../pages/DetectionRulesPage';
+import MitreMatrixPage from '../pages/MitreMatrixPage';
+import SchedulerPage from '../pages/SchedulerPage';
+import NetworkConnectorsPage from '../pages/NetworkConnectorsPage';
+import NotificationsPage from '../pages/NotificationsPage';
+import MonitoringPage from '../pages/MonitoringPage';
 
 function RouteConfig() {
   const { logout } = useAuth();
@@ -104,6 +111,69 @@ function RouteConfig() {
         element={
           <ProtectedRoute requireRole="admin">
             <VelociraptorPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/actions"
+        element={
+          <ProtectedRoute>
+            <ShieldgridActionsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/rules"
+        element={
+          <ProtectedRoute>
+            <DetectionRulesPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/mitre"
+        element={
+          <ProtectedRoute>
+            <MitreMatrixPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/scheduler"
+        element={
+          <ProtectedRoute>
+            <SchedulerPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/network-connectors"
+        element={
+          <ProtectedRoute requireRole="admin">
+            <NetworkConnectorsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <NotificationsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/monitoring"
+        element={
+          <ProtectedRoute>
+            <MonitoringPage />
           </ProtectedRoute>
         }
       />

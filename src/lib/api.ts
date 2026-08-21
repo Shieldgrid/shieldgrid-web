@@ -221,3 +221,145 @@ export async function runVqlQuery(payload: VqlQueryRequest): Promise<VqlQueryRes
     body: payload,
   });
 }
+
+// ── Threat Intelligence Endpoints ─────────────────────────────────────────────
+
+export async function lookupIoc(ioc: string): Promise<import('./types').ThreatIntelResult> {
+  return apiFetch<import('./types').ThreatIntelResult>('/api/v1/threat-intel/lookup', {
+    query: { ioc },
+  });
+}
+
+export async function enrichIocs(iocs: string[]): Promise<import('./types').EnrichIocsResponse> {
+  return apiFetch<import('./types').EnrichIocsResponse>('/api/v1/threat-intel/enrich', {
+    method: 'POST',
+    body: { iocs },
+  });
+}
+
+export async function lookupEpss(cve: string): Promise<import('./types').ThreatIntelResult> {
+  return apiFetch<import('./types').ThreatIntelResult>(`/api/v1/threat-intel/epss/${encodeURIComponent(cve)}`);
+}
+
+// ── Shieldgrid Actions Endpoints ──────────────────────────────────────────────
+
+export async function fetchActionTemplates(): Promise<import('./types').ActionTemplate[]> {
+  return apiFetch<import('./types').ActionTemplate[]>('/api/v1/actions/templates');
+}
+
+export async function executeShieldgridAction(
+  payload: import('./types').ExecuteActionPayload
+): Promise<import('./types').ActionExecution> {
+  return apiFetch<import('./types').ActionExecution>('/api/v1/actions/execute', {
+    method: 'POST',
+    body: payload,
+  });
+}
+
+export async function fetchActionExecutions(limit = 50): Promise<import('./types').ActionExecution[]> {
+  return apiFetch<import('./types').ActionExecution[]>('/api/v1/actions/executions', {
+    query: { limit: limit.toString() },
+  });
+}
+
+export async function fetchActionExecutionDetail(id: string): Promise<import('./types').ActionExecution> {
+  return apiFetch<import('./types').ActionExecution>(`/api/v1/actions/executions/${id}`);
+}
+
+// ── Detection Rules & MITRE ATT&CK Endpoints ──────────────────────────────────
+
+export async function fetchDetectionRules(): Promise<import('./types').DetectionRule[]> {
+  return apiFetch<import('./types').DetectionRule[]>('/api/v1/rules');
+}
+
+export async function updateDetectionRule(
+  id: string,
+  payload: { enabled?: boolean; severity?: string }
+): Promise<import('./types').DetectionRule> {
+  return apiFetch<import('./types').DetectionRule>(`/api/v1/rules/${id}`, {
+    method: 'PATCH',
+    body: payload,
+  });
+}
+
+export async function fetchMitreTactics(): Promise<import('./types').MitreTactic[]> {
+  return apiFetch<import('./types').MitreTactic[]>('/api/v1/mitre/tactics');
+}
+
+export async function fetchMitreMatrix(): Promise<import('./types').MitreMatrixResponse> {
+  return apiFetch<import('./types').MitreMatrixResponse>('/api/v1/mitre/matrix');
+}
+
+// ── AI Analyst Endpoints ──────────────────────────────────────────────────────
+
+export async function fetchSecurityPostureSummary(): Promise<import('./types').SecurityPostureSummary> {
+  return apiFetch<import('./types').SecurityPostureSummary>('/api/v1/ai/summary');
+}
+
+export async function runAiTriage(payload: {
+  alert_id?: string;
+  case_id?: string;
+  ioc?: string;
+}): Promise<import('./types').TriageReport> {
+  return apiFetch<import('./types').TriageReport>('/api/v1/ai/triage', {
+    method: 'POST',
+    body: payload,
+  });
+}
+
+// ── Scheduler Endpoints ──────────────────────────────────────────────────────
+
+export async function fetchSchedules(): Promise<import('./types').Schedule[]> {
+  return apiFetch<import('./types').Schedule[]>('/api/v1/scheduler/schedules');
+}
+
+export async function createSchedule(payload: import('./types').CreateSchedulePayload): Promise<import('./types').Schedule> {
+  return apiFetch<import('./types').Schedule>('/api/v1/scheduler/schedules', {
+    method: 'POST',
+    body: payload,
+  });
+}
+
+// ── Network Connectors Endpoints ─────────────────────────────────────────────
+
+export async function fetchNetworkConnectors(): Promise<import('./types').NetworkConnector[]> {
+  return apiFetch<import('./types').NetworkConnector[]>('/api/v1/network-connectors');
+}
+
+export async function createNetworkConnector(payload: import('./types').CreateNetworkConnectorPayload): Promise<import('./types').NetworkConnector> {
+  return apiFetch<import('./types').NetworkConnector>('/api/v1/network-connectors', {
+    method: 'POST',
+    body: payload,
+  });
+}
+
+// ── Notifications Endpoints ──────────────────────────────────────────────────
+
+export async function fetchNotificationChannels(): Promise<import('./types').NotificationChannel[]> {
+  return apiFetch<import('./types').NotificationChannel[]>('/api/v1/notifications/channels');
+}
+
+export async function fetchNotificationRules(): Promise<import('./types').NotificationRule[]> {
+  return apiFetch<import('./types').NotificationRule[]>('/api/v1/notifications/rules');
+}
+
+export async function sendNotification(payload: import('./types').SendNotificationPayload): Promise<import('./types').NotificationLog> {
+  return apiFetch<import('./types').NotificationLog>('/api/v1/notifications/send', {
+    method: 'POST',
+    body: payload,
+  });
+}
+
+// ── Monitoring Endpoints ─────────────────────────────────────────────────────
+
+export async function fetchSystemHealth(): Promise<import('./types').SystemHealth> {
+  return apiFetch<import('./types').SystemHealth>('/api/v1/monitoring/health');
+}
+
+export async function fetchPerformanceDashboard(): Promise<import('./types').PerformanceDashboard> {
+  return apiFetch<import('./types').PerformanceDashboard>('/api/v1/monitoring/dashboard');
+}
+
+
+
+
