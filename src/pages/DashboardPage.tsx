@@ -1,320 +1,267 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Layout } from '../components/Layout';
+import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
-import { fetchHealth, fetchAlerts, fetchCases, fetchJobs } from '../lib/api';
-import type { HealthResponse, NormalizedAlert, Case, IngestJob } from '../lib/types';
-import { LoadingSkeleton } from '../components/LoadingSkeleton';
-import { ErrorDisplay } from '../components/ErrorDisplay';
+import { fetchHealth, fetchAlerts, fetchCases, fetchJobs, fetchSecurityPostureSummary } from '../lib/api';
+import type { HealthResponse, NormalizedAlert, Case, IngestJob, SecurityPostureSummary } from '../lib/types';
 
 export default function DashboardPage() {
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [alerts, setAlerts] = useState<NormalizedAlert[]>([]);
   const [cases, setCases] = useState<Case[]>([]);
   const [jobs, setJobs] = useState<IngestJob[]>([]);
+  const [posture, setPosture] = useState<SecurityPostureSummary | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const loadDashboardData = useCallback(async () => {
+  const loadData = useCallback(async () => {
     if (!isAuthenticated) return;
     setLoading(true);
-    setError(null);
     try {
-      const [hRes, aRes, cRes, jRes] = await Promise.all([
+      const [hRes, aRes, cRes, jRes, pRes] = await Promise.all([
         fetchHealth(),
         fetchAlerts().catch(() => []),
         fetchCases().catch(() => []),
         fetchJobs().catch(() => []),
+        fetchSecurityPostureSummary().catch(() => null),
       ]);
       setHealth(hRes);
       setAlerts(aRes);
       setCases(cRes);
       setJobs(jRes);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
+      setPosture(pRes);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   }, [isAuthenticated]);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, [loadDashboardData]);
+  useEffect(() => { loadData(); }, [loadData]);
 
-  const openCasesCount = cases.filter((c) => c.status.toLowerCase() === 'open').length;
-  const criticalAlertsCount = alerts.filter((a) => a.severity === 'critical' || a.severity === 'high').length;
-  const enabledJobs = jobs.filter((j) => j.enabled);
-  const lastIngestAt = enabledJobs
-    .map((j) => j.last_run_at)
-    .filter((t): t is string => !!t)
-    .map((t) => new Date(t).getTime())
-    .sort((a, b) => b - a)[0];
-  const lastIngestLabel = lastIngestAt
-    ? `Last ingest ${relativeTime(lastIngestAt)}`
-    : 'Awaiting first ingest';
+  const openCases = cases.filter(c => c.status.toLowerCase() === 'open').length;
+  const criticalAlerts = alerts.filter(a => a.severity === 'critical').length;
+  const highAlerts = alerts.filter(a => a.severity === 'high').length;
+  const healthyConnectors = health?.connectors.filter(c => c.status === 'healthy').length ?? 0;
+  const totalConnectors = health?.connectors.length ?? 0;
 
   return (
-    <Layout>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        {/* Page Title */}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: 0 }}>SOC Operational Overview</h1>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Real-time status of integrated security tools and incident queues.
-          </p>
+          <h1 className="text-2xl font-bold text-white">SOC Operations Overview</h1>
+          <p className="text-slate-400 text-sm mt-1">Real-time status of your security infrastructure</p>
         </div>
+        <button onClick={loadData} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm transition-colors">
+          Refresh
+        </button>
+      </div>
 
-        {error && <ErrorDisplay message={error} onRetry={loadDashboardData} />}
-
-        {loading ? (
-          <LoadingSkeleton count={3} height="6rem" />
-        ) : (
-          <>
-            {/* Top Metric Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
-              <MetricCard
-                title="Active Connectors"
-                value={health?.connectors.length ?? 0}
-                subtitle={`${health?.connectors.filter((c) => c.status === 'healthy').length ?? 0} Healthy`}
-                color="var(--color-accent)"
-              />
-              <MetricCard
-                title="Total Merged Alerts"
-                value={alerts.length}
-                subtitle={`${criticalAlertsCount} High/Critical`}
-                color={criticalAlertsCount > 0 ? 'var(--color-critical)' : 'var(--color-accent)'}
-              />
-              <MetricCard
-                title="Open Cases"
-                value={openCasesCount}
-                subtitle={`${cases.length} Total Cases`}
-                color="var(--color-warning)"
-              />
-              <MetricCard
-                title="Scheduled Ingest Jobs"
-                value={enabledJobs.length}
-                subtitle={lastIngestLabel}
-                color="var(--color-success)"
-              />
+      {loading ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl p-5 animate-pulse">
+              <div className="h-4 bg-slate-700 rounded w-20 mb-3"></div>
+              <div className="h-8 bg-slate-700 rounded w-16 mb-2"></div>
+              <div className="h-3 bg-slate-700 rounded w-32"></div>
             </div>
+          ))}
+        </div>
+      ) : (
+        <>
+          {/* Metric Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricCard
+              title="Active Alerts"
+              value={alerts.length}
+              subtitle={`${criticalAlerts} critical · ${highAlerts} high`}
+              color={criticalAlerts > 0 ? '#E71D36' : '#4FD1FF'}
+              icon="⚡"
+              onClick={() => navigate('/alerts')}
+            />
+            <MetricCard
+              title="Open Cases"
+              value={openCases}
+              subtitle={`${cases.length} total cases`}
+              color="#FF9F1C"
+              icon="📁"
+              onClick={() => navigate('/cases')}
+            />
+            <MetricCard
+              title="Connectors"
+              value={`${healthyConnectors}/${totalConnectors}`}
+              subtitle="Healthy / Total"
+              color="#22D3A5"
+              icon="🔌"
+              onClick={() => navigate('/connectors')}
+            />
+            <MetricCard
+              title="Ingest Jobs"
+              value={jobs.filter(j => j.enabled).length}
+              subtitle={`${jobs.length} total configured`}
+              color="#4FD1FF"
+              icon="🔄"
+              onClick={() => navigate('/scheduler')}
+            />
+          </div>
 
-            {/* Signature Element: Core Orbit Node Visualization */}
-            <div
-              style={{
-                background: 'var(--color-bg-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '2rem',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-              }}
-            >
-              <h3 style={{ marginBottom: '0.5rem', alignSelf: 'flex-start' }}>
-                System Telemetry Orbit (Live Node Graph)
-              </h3>
-              <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', alignSelf: 'flex-start', marginBottom: '2rem' }}>
-                Central point visualization of registered connectors feeding telemetry into Shieldgrid Core.
-              </p>
+          {/* Quick Actions */}
+          <div className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl p-5">
+            <h3 className="text-white font-semibold mb-4">Quick Actions</h3>
+            <div className="flex flex-wrap gap-3">
+              <QuickAction icon="🎯" label="AI Triage" color="#4FD1FF" onClick={() => navigate('/ai')} />
+              <QuickAction icon="🔍" label="Threat Intel" color="#818CF8" onClick={() => navigate('/threat-intel')} />
+              <QuickAction icon="🛡️" label="Response Actions" color="#22D3A5" onClick={() => navigate('/actions')} />
+              <QuickAction icon="📋" label="Detection Rules" color="#FF9F1C" onClick={() => navigate('/rules')} />
+              <QuickAction icon="🗺️" label="MITRE Matrix" color="#F472B6" onClick={() => navigate('/mitre')} />
+              <QuickAction icon="📊" label="Monitoring" color="#22D3A5" onClick={() => navigate('/monitoring')} />
+              <QuickAction icon="🤖" label="AI Chat" color="#C084FC" onClick={() => navigate('/ai-chat')} />
+              <QuickAction icon="👥" label="Agents" color="#38BDF8" onClick={() => navigate('/agents')} />
+            </div>
+          </div>
 
-              {/* Orbit Canvas */}
-              <div
-                style={{
-                  position: 'relative',
-                  width: '320px',
-                  height: '320px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {/* Outer Ring */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    width: '260px',
-                    height: '260px',
-                    borderRadius: '50%',
-                    border: '1px dashed var(--color-border)',
-                  }}
-                />
-
-                {/* Central Shieldgrid Core Node */}
-                <div
-                  style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    background: 'var(--color-bg-base)',
-                    border: '2px solid var(--color-accent)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 10,
-                    boxShadow: '0 0 20px color-mix(in srgb, var(--color-accent) 30%, transparent)',
-                  }}
-                >
-                  <span style={{ fontSize: '1.25rem' }}>🛡️</span>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--color-text-primary)', marginTop: '2px' }}>
-                    CORE
-                  </span>
-                </div>
-
-                {/* Connector Nodes in Orbit */}
-                {(health?.connectors ?? []).map((conn, idx, arr) => {
-                  const total = arr.length || 1;
-                  const angle = (idx * (360 / total) - 90) * (Math.PI / 180);
-                  const radius = 130;
-                  const x = Math.cos(angle) * radius;
-                  const y = Math.sin(angle) * radius;
-
-                  const statusColors = {
-                    healthy: 'var(--color-success)',
-                    degraded: 'var(--color-warning)',
-                    down: 'var(--color-critical)',
-                  };
-                  const color = statusColors[conn.status] || 'var(--color-text-secondary)';
-
-                  return (
-                    <React.Fragment key={conn.id}>
-                      {/* Connecting Beam */}
-                      <svg
-                        style={{
-                          position: 'absolute',
-                          width: '100%',
-                          height: '100%',
-                          pointerEvents: 'none',
-                        }}
-                      >
-                        <line
-                          x1="160"
-                          y1="160"
-                          x2={160 + x}
-                          y2={160 + y}
-                          stroke={color}
-                          strokeWidth="1.5"
-                          strokeDasharray={conn.status === 'down' ? '4,4' : 'none'}
-                          opacity="0.6"
-                        />
-                      </svg>
-
-                      {/* Node Bubble */}
-                      <div
-                        style={{
-                          position: 'absolute',
-                          transform: `translate(${x}px, ${y}px)`,
-                          width: '64px',
-                          height: '64px',
-                          borderRadius: '50%',
-                          background: 'var(--color-bg-base)',
-                          border: `2px solid ${color}`,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          zIndex: 20,
-                          cursor: 'pointer',
-                          boxShadow: `0 0 12px color-mix(in srgb, ${color} 40%, transparent)`,
-                        }}
-                        title={`${conn.id}: ${conn.status}${conn.reason ? ` (${conn.reason})` : ''}`}
-                      >
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-primary)', textTransform: 'capitalize' }}>
-                          {conn.id}
-                        </span>
-                        <span style={{ fontSize: '0.6rem', color, fontWeight: 600 }}>
-                          {conn.status}
-                        </span>
-                      </div>
-                    </React.Fragment>
-                  );
-                })}
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Recent Alerts */}
+            <div className="lg:col-span-2 bg-[#132B4D] border border-[#1E3A5F] rounded-xl">
+              <div className="flex items-center justify-between p-5 border-b border-[#1E3A5F]">
+                <h3 className="text-white font-semibold">Recent Alerts</h3>
+                <button onClick={() => navigate('/alerts')} className="text-[#4FD1FF] text-sm hover:underline">View All</button>
               </div>
-            </div>
-
-            {/* Connector Health Table */}
-            <div
-              style={{
-                background: 'var(--color-bg-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '1.5rem',
-              }}
-            >
-              <h3 style={{ marginBottom: '1rem' }}>Connector Status Detail</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {health?.connectors.map((conn) => (
-                  <div
-                    key={conn.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '0.875rem 1rem',
-                      borderRadius: 'var(--radius-md)',
-                      background: 'var(--color-bg-base)',
-                      border: '1px solid var(--color-border)',
-                    }}
-                  >
-                    <div>
-                      <strong style={{ textTransform: 'capitalize', fontSize: '0.95rem' }}>{conn.id} Connector</strong>
-                      {conn.reason && (
-                        <p style={{ color: 'var(--color-critical)', fontSize: '0.8rem', marginTop: '0.2rem' }}>
-                          Reason: {conn.reason}
-                        </p>
-                      )}
+              <div className="divide-y divide-[#1E3A5F]">
+                {alerts.slice(0, 8).map(alert => (
+                  <div key={alert.id} className="px-5 py-3 flex items-center justify-between hover:bg-[#1A3560] transition-colors">
+                    <div className="flex items-center gap-3">
+                      <SeverityBadge severity={alert.severity} />
+                      <div>
+                        <div className="text-white text-sm font-medium">{alert.source_id}</div>
+                        <div className="text-slate-400 text-xs">{alert.connector_id} · {alert.source}</div>
+                      </div>
                     </div>
-                    <span
-                      style={{
-                        padding: '0.25rem 0.75rem',
-                        borderRadius: '999px',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        color: '#0B1B33',
-                        background:
-                          conn.status === 'healthy'
-                            ? 'var(--color-success)'
-                            : conn.status === 'degraded'
-                            ? 'var(--color-warning)'
-                            : 'var(--color-critical)',
-                      }}
-                    >
-                      {conn.status}
-                    </span>
+                    <div className="text-slate-500 text-xs">{new Date(alert.timestamp).toLocaleString()}</div>
                   </div>
                 ))}
+                {alerts.length === 0 && (
+                  <div className="px-5 py-8 text-center text-slate-500">No alerts</div>
+                )}
               </div>
             </div>
-          </>
-        )}
-      </div>
-    </Layout>
-  );
-}
 
-function MetricCard({ title, value, subtitle, color }: { title: string; value: number; subtitle: string; color: string }) {
-  return (
-    <div
-      style={{
-        padding: '1.5rem',
-        borderRadius: 'var(--radius-lg)',
-        background: 'var(--color-bg-surface)',
-        border: '1px solid var(--color-border)',
-      }}
-    >
-      <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', margin: 0 }}>{title}</p>
-      <h2 style={{ fontSize: '2.25rem', fontWeight: 700, color, margin: '0.25rem 0' }}>{value}</h2>
-      <p style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', margin: 0 }}>{subtitle}</p>
+            {/* Right Column */}
+            <div className="space-y-6">
+              {/* Security Posture */}
+              {posture && (
+                <div className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl p-5">
+                  <h3 className="text-white font-semibold mb-4">Security Posture</h3>
+                  <div className="space-y-3">
+                    <PostureRow label="Open Alerts" value={posture.open_alerts_count} color="#4FD1FF" />
+                    <PostureRow label="Critical" value={posture.critical_alerts_count} color="#E71D36" />
+                    <PostureRow label="Active Cases" value={posture.active_cases_count} color="#FF9F1C" />
+                    <PostureRow label="Actions Executed" value={posture.executed_actions_count} color="#22D3A5" />
+                    <PostureRow label="High Risk IOCs" value={posture.high_risk_iocs_cached} color="#C084FC" />
+                  </div>
+                  {posture.top_threat_summary && (
+                    <div className="mt-4 p-3 bg-[#0B1B33] rounded-lg">
+                      <p className="text-slate-400 text-xs">{posture.top_threat_summary}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Open Cases */}
+              <div className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl">
+                <div className="flex items-center justify-between p-5 border-b border-[#1E3A5F]">
+                  <h3 className="text-white font-semibold">Open Cases</h3>
+                  <button onClick={() => navigate('/cases')} className="text-[#4FD1FF] text-sm hover:underline">View All</button>
+                </div>
+                <div className="divide-y divide-[#1E3A5F]">
+                  {cases.filter(c => c.status.toLowerCase() === 'open').slice(0, 5).map(c => (
+                    <div key={c.id} className="px-5 py-3 hover:bg-[#1A3560] transition-colors cursor-pointer" onClick={() => navigate(`/cases/${c.id}`)}>
+                      <div className="text-white text-sm font-medium">{c.title}</div>
+                      <div className="text-slate-500 text-xs mt-1">{new Date(c.created_at).toLocaleDateString()}</div>
+                    </div>
+                  ))}
+                  {cases.filter(c => c.status.toLowerCase() === 'open').length === 0 && (
+                    <div className="px-5 py-6 text-center text-slate-500 text-sm">No open cases</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Connector Health */}
+              <div className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl p-5">
+                <h3 className="text-white font-semibold mb-4">Connectors</h3>
+                <div className="space-y-2">
+                  {health?.connectors.map(conn => (
+                    <div key={conn.id} className="flex items-center justify-between">
+                      <span className="text-slate-300 text-sm capitalize">{conn.id}</span>
+                      <StatusDot status={conn.status} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
-function relativeTime(timestampMs: number): string {
-  const seconds = Math.max(1, Math.floor((Date.now() - timestampMs) / 1000));
-  if (seconds < 60) return `${seconds}s ago`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours}h ago`;
+function MetricCard({ title, value, subtitle, color, icon, onClick }: {
+  title: string; value: string | number; subtitle: string; color: string; icon: string; onClick: () => void;
+}) {
+  return (
+    <button onClick={onClick} className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl p-5 text-left hover:border-[#4FD1FF]/30 transition-all group">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-slate-400 text-sm">{title}</span>
+        <span className="text-lg">{icon}</span>
+      </div>
+      <div className="text-3xl font-bold" style={{ color }}>{value}</div>
+      <div className="text-slate-500 text-xs mt-1">{subtitle}</div>
+    </button>
+  );
+}
+
+function QuickAction({ icon, label, color, onClick }: { icon: string; label: string; color: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="flex items-center gap-2 px-4 py-2 rounded-lg border transition-all hover:scale-105" style={{ borderColor: color + '40', background: color + '10', color }}>
+      <span>{icon}</span>
+      <span className="text-sm font-medium">{label}</span>
+    </button>
+  );
+}
+
+function SeverityBadge({ severity }: { severity: string }) {
+  const colors: Record<string, string> = {
+    critical: 'bg-red-500/20 text-red-400',
+    high: 'bg-orange-500/20 text-orange-400',
+    medium: 'bg-yellow-500/20 text-yellow-400',
+    low: 'bg-blue-500/20 text-blue-400',
+    info: 'bg-slate-500/20 text-slate-400',
+  };
+  return (
+    <span className={`px-2 py-1 rounded text-xs font-medium ${colors[severity] || colors.info}`}>
+      {severity}
+    </span>
+  );
+}
+
+function StatusDot({ status }: { status: string }) {
+  const color = status === 'healthy' ? 'bg-green-400' : status === 'degraded' ? 'bg-yellow-400' : 'bg-red-400';
+  return (
+    <div className="flex items-center gap-2">
+      <div className={`w-2 h-2 rounded-full ${color}`}></div>
+      <span className="text-slate-400 text-xs capitalize">{status}</span>
+    </div>
+  );
+}
+
+function PostureRow({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-slate-400 text-sm">{label}</span>
+      <span className="font-semibold" style={{ color }}>{value}</span>
+    </div>
+  );
 }

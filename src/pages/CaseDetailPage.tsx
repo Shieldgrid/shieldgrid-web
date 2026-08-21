@@ -16,17 +16,53 @@ import type { Case, NormalizedAlert, ActionResult, AuditLog } from '../lib/types
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { ErrorDisplay } from '../components/ErrorDisplay';
 
+// ── Case Tasks & Observables ──────────────────────────────────────────────
+
+interface CaseTask {
+  id: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'in_progress' | 'completed';
+  assigned_to: string | null;
+  created_at: string;
+}
+
+interface CaseObservable {
+  id: string;
+  type: 'ip' | 'domain' | 'hash' | 'url' | 'email' | 'file';
+  value: string;
+  tlp: 'white' | 'green' | 'amber' | 'red';
+  tags: string[];
+  created_at: string;
+}
+
+
 export default function CaseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { isAuthenticated, user } = useAuth();
-  const navigate = useNavigate();
-
-  const [caseData, setCaseData] = useState<Case | null>(null);
+  const navigate = useNavigate();  const [caseData, setCaseData] = useState<Case | null>(null);
   const [attachedAlertIds, setAttachedAlertIds] = useState<string[]>([]);
   const [allAlerts, setAllAlerts] = useState<NormalizedAlert[]>([]);
   const [actionHistory, setActionHistory] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Tasks, Observables, Templates state
+  const [activeDetailTab, setActiveDetailTab] = useState<'alerts' | 'tasks' | 'observables' | 'templates'>('alerts');
+  const [tasks, setTasks] = useState<CaseTask[]>([
+    { id: 't1', title: 'Analyze network logs for lateral movement', description: 'Review firewall and IDS logs for signs of post-exploitation activity.', status: 'in_progress', assigned_to: 'analyst1', created_at: '2024-04-20T10:00:00Z' },
+    { id: 't2', title: 'Collect forensic image', description: 'Create forensic disk image of compromised endpoint for offline analysis.', status: 'pending', assigned_to: null, created_at: '2024-04-20T10:00:00Z' },
+    { id: 't3', title: 'Notify stakeholders', description: 'Send incident notification to affected department heads.', status: 'completed', assigned_to: 'analyst2', created_at: '2024-04-20T09:00:00Z' },
+  ]);
+  const [observables, setObservables] = useState<CaseObservable[]>([
+    { id: 'o1', type: 'ip', value: '198.51.100.42', tlp: 'amber', tags: ['c2', 'malware'], created_at: '2024-04-20T10:00:00Z' },
+    { id: 'o2', type: 'hash', value: 'd41d8cd98f00b204e9800998ecf8427e', tlp: 'red', tags: ['malware-sample'], created_at: '2024-04-20T10:00:00Z' },
+    { id: 'o3', type: 'domain', value: 'evil-c2.example.com', tlp: 'amber', tags: ['c2', 'phishing'], created_at: '2024-04-20T10:05:00Z' },
+  ]);
+  const [showNewTask, setShowNewTask] = useState(false);
+  const [newTask, setNewTask] = useState({ title: '', description: '' });
+  const [showNewObservable, setShowNewObservable] = useState(false);
+  const [newObservable, setNewObservable] = useState({ type: 'ip' as const, value: '', tlp: 'green' as const, tags: '' });
 
   // Attach modal state
   const [showAttachModal, setShowAttachModal] = useState(false);
@@ -415,7 +451,7 @@ export default function CaseDetailPage() {
               )}
             </div>
 
-            {/* Linked Evidence & Alerts Section */}
+            {/* ── Case Detail Tabs: Alerts / Tasks / Observables / Templates ──── */}
             <div
               style={{
                 background: 'var(--color-bg-surface)',
@@ -427,97 +463,447 @@ export default function CaseDetailPage() {
                 gap: '1rem',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <h3>Linked Alerts &amp; Telemetry Evidence ({attachedAlertIds.length})</h3>
-                  <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>
-                    Alerts attached to this case for evidence analysis.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowAttachModal(true)}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    background: 'var(--color-accent)',
-                    color: '#0B1B33',
-                    border: 'none',
-                    borderRadius: 'var(--radius-md)',
-                    fontWeight: 700,
-                    fontSize: '0.875rem',
-                    cursor: 'pointer',
-                  }}
-                >
-                  + Link Alert
-                </button>
+              {/* Tab bar */}
+              <div style={{ display: 'flex', gap: '0.25rem', borderBottom: '1px solid var(--color-border)', paddingBottom: 0 }}>
+                {([
+                  { key: 'alerts' as const, label: 'Linked Alerts', icon: '⚡', count: attachedAlertIds.length },
+                  { key: 'tasks' as const, label: 'Tasks', icon: '✅', count: tasks.length },
+                  { key: 'observables' as const, label: 'Observables', icon: '🔍', count: observables.length },
+                  { key: 'templates' as const, label: 'Templates', icon: '📋', count: 0 },
+                ]).map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveDetailTab(tab.key)}
+                    style={{
+                      padding: '0.5rem 0.875rem',
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom: activeDetailTab === tab.key ? '2px solid var(--color-accent)' : '2px solid transparent',
+                      color: activeDetailTab === tab.key ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                      fontSize: '0.85rem',
+                      fontWeight: activeDetailTab === tab.key ? 600 : 400,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.375rem',
+                    }}
+                  >
+                    {tab.icon} {tab.label}
+                    <span style={{
+                      fontSize: '0.7rem',
+                      background: activeDetailTab === tab.key ? 'rgba(99,102,241,0.15)' : 'rgba(107,114,128,0.1)',
+                      padding: '0.1rem 0.375rem',
+                      borderRadius: '10px',
+                      fontWeight: 600,
+                    }}>
+                      {tab.count}
+                    </span>
+                  </button>
+                ))}
               </div>
 
-              {attachedAlertIds.length === 0 ? (
-                <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', padding: '1rem 0' }}>
-                  No alerts currently linked to this case. Click "+ Link Alert" to attach evidence from sensor queue.
-                </p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {attachedAlertIds.map((alertId) => {
-                    const obj = attachedAlertObjects.find((a) => a.id === alertId);
-                    return (
-                      <div
-                        key={alertId}
-                        style={{
-                          padding: '1rem',
-                          borderRadius: 'var(--radius-md)',
-                          background: 'var(--color-bg-base)',
-                          border: '1px solid var(--color-border)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                        }}
-                      >
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <code style={{ color: 'var(--color-accent)', fontSize: '0.85rem' }}>{alertId}</code>
-                            {obj && (
-                              <span style={{ fontSize: '0.85rem', color: 'var(--color-text-primary)' }}>
-                                ({obj.connector_id} &bull; {obj.source})
-                              </span>
-                            )}
-                          </div>
-                          {obj && (
-                            <pre
+              {/* ── Alerts Tab ──── */}
+              {activeDetailTab === 'alerts' && (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                      onClick={() => setShowAttachModal(true)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: 'var(--color-accent)',
+                        color: '#0B1B33',
+                        border: 'none',
+                        borderRadius: 'var(--radius-md)',
+                        fontWeight: 700,
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      + Link Alert
+                    </button>
+                  </div>
+                  {attachedAlertIds.length === 0 ? (
+                    <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', padding: '1rem 0' }}>
+                      No alerts currently linked to this case. Click "+ Link Alert" to attach evidence from sensor queue.
+                    </p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {attachedAlertIds.map((alertId) => {
+                        const obj = attachedAlertObjects.find((a) => a.id === alertId);
+                        return (
+                          <div
+                            key={alertId}
+                            style={{
+                              padding: '1rem',
+                              borderRadius: 'var(--radius-md)',
+                              background: 'var(--color-bg-base)',
+                              border: '1px solid var(--color-border)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                            }}
+                          >
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <code style={{ color: 'var(--color-accent)', fontSize: '0.85rem' }}>{alertId}</code>
+                                {obj && (
+                                  <span style={{ fontSize: '0.85rem', color: 'var(--color-text-primary)' }}>
+                                    ({obj.connector_id} &bull; {obj.source})
+                                  </span>
+                                )}
+                              </div>
+                              {obj && (
+                                <pre
+                                  style={{
+                                    marginTop: '0.5rem',
+                                    background: 'var(--color-bg-surface)',
+                                    padding: '0.5rem',
+                                    borderRadius: '4px',
+                                    fontSize: '0.7rem',
+                                    color: 'var(--color-text-secondary)',
+                                    overflowX: 'auto',
+                                    maxHeight: '100px',
+                                  }}
+                                >
+                                  {/* SECURITY: Rendered plain text */}
+                                  {JSON.stringify(obj.raw_payload, null, 2)}
+                                </pre>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => handleDetachAlert(alertId)}
+                              disabled={actionLoading}
                               style={{
-                                marginTop: '0.5rem',
-                                background: 'var(--color-bg-surface)',
-                                padding: '0.5rem',
-                                borderRadius: '4px',
-                                fontSize: '0.7rem',
-                                color: 'var(--color-text-secondary)',
-                                overflowX: 'auto',
-                                maxHeight: '100px',
+                                padding: '0.375rem 0.75rem',
+                                background: 'transparent',
+                                border: '1px solid var(--color-critical)',
+                                color: 'var(--color-critical)',
+                                borderRadius: 'var(--radius-sm)',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
                               }}
                             >
-                              {/* SECURITY: Rendered plain text */}
-                              {JSON.stringify(obj.raw_payload, null, 2)}
-                            </pre>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => handleDetachAlert(alertId)}
-                          disabled={actionLoading}
+                              Detach
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* ── Tasks Tab ──── */}
+              {activeDetailTab === 'tasks' && (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                      onClick={() => setShowNewTask(true)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: 'var(--color-accent)',
+                        color: '#0B1B33',
+                        border: 'none',
+                        borderRadius: 'var(--radius-md)',
+                        fontWeight: 700,
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      + Add Task
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {tasks.map(task => {
+                      const statusColors: Record<string, { bg: string; text: string; label: string }> = {
+                        pending: { bg: 'rgba(245,158,11,0.1)', text: '#f59e0b', label: 'Pending' },
+                        in_progress: { bg: 'rgba(59,130,246,0.1)', text: '#3b82f6', label: 'In Progress' },
+                        completed: { bg: 'rgba(16,185,129,0.1)', text: '#10b981', label: 'Completed' },
+                      };
+                      const sc = statusColors[task.status] || statusColors.pending;
+                      return (
+                        <div
+                          key={task.id}
                           style={{
-                            padding: '0.375rem 0.75rem',
-                            background: 'transparent',
-                            border: '1px solid var(--color-critical)',
-                            color: 'var(--color-critical)',
-                            borderRadius: 'var(--radius-sm)',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            cursor: 'pointer',
+                            padding: '1rem',
+                            borderRadius: 'var(--radius-md)',
+                            background: 'var(--color-bg-base)',
+                            border: '1px solid var(--color-border)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-start',
                           }}
                         >
-                          Detach
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                              <span style={{
+                                padding: '0.15rem 0.5rem',
+                                background: sc.bg,
+                                borderRadius: 'var(--radius-sm)',
+                                fontSize: '0.7rem',
+                                fontWeight: 600,
+                                color: sc.text,
+                              }}>
+                                {sc.label}
+                              </span>
+                              <strong style={{ fontSize: '0.9rem' }}>{task.title}</strong>
+                            </div>
+                            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>{task.description}</p>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+                              Assigned to: {task.assigned_to || 'Unassigned'} • Created: {new Date(task.created_at).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <select
+                            value={task.status}
+                            onChange={(e) => {
+                              setTasks(tasks.map(t => t.id === task.id ? { ...t, status: e.target.value as CaseTask['status'] } : t));
+                            }}
+                            style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: 'var(--radius-sm)',
+                              background: 'var(--color-bg-surface)',
+                              border: '1px solid var(--color-border)',
+                              fontSize: '0.75rem',
+                              color: 'var(--color-text-primary)',
+                            }}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                          </select>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {/* New Task Form */}
+                  {showNewTask && (
+                    <div style={{ padding: '1rem', background: 'var(--color-bg-base)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--color-border)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <input
+                          placeholder="Task title"
+                          value={newTask.title}
+                          onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                          style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-surface)', color: 'var(--color-text-primary)', fontSize: '0.875rem' }}
+                        />
+                        <textarea
+                          placeholder="Description (optional)"
+                          value={newTask.description}
+                          onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                          rows={2}
+                          style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-surface)', color: 'var(--color-text-primary)', fontSize: '0.85rem', resize: 'vertical' }}
+                        />
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => setShowNewTask(false)}
+                            style={{ padding: '0.375rem 0.75rem', background: 'transparent', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text-secondary)', fontSize: '0.8rem', cursor: 'pointer' }}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (newTask.title.trim()) {
+                                setTasks([...tasks, { id: `t${Date.now()}`, ...newTask, status: 'pending', assigned_to: null, created_at: new Date().toISOString() }]);
+                                setNewTask({ title: '', description: '' });
+                                setShowNewTask(false);
+                              }
+                            }}
+                            style={{ padding: '0.375rem 0.75rem', background: 'var(--color-accent)', color: '#0B1B33', border: 'none', borderRadius: 'var(--radius-sm)', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}
+                          >
+                            Add Task
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* ── Observables Tab ──── */}
+              {activeDetailTab === 'observables' && (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                      onClick={() => setShowNewObservable(true)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: 'var(--color-accent)',
+                        color: '#0B1B33',
+                        border: 'none',
+                        borderRadius: 'var(--radius-md)',
+                        fontWeight: 700,
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      + Add Observable
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {observables.map(obs => {
+                      const tlpColors: Record<string, { bg: string; text: string }> = {
+                        white: { bg: 'rgba(255,255,255,0.1)', text: '#fff' },
+                        green: { bg: 'rgba(16,185,129,0.1)', text: '#10b981' },
+                        amber: { bg: 'rgba(245,158,11,0.1)', text: '#f59e0b' },
+                        red: { bg: 'rgba(239,68,68,0.1)', text: '#ef4444' },
+                      };
+                      const tc = tlpColors[obs.tlp] || tlpColors.green;
+                      return (
+                        <div
+                          key={obs.id}
+                          style={{
+                            padding: '1rem',
+                            borderRadius: 'var(--radius-md)',
+                            background: 'var(--color-bg-base)',
+                            border: '1px solid var(--color-border)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <span style={{
+                              padding: '0.15rem 0.5rem',
+                              background: tc.bg,
+                              borderRadius: 'var(--radius-sm)',
+                              fontSize: '0.65rem',
+                              fontWeight: 700,
+                              color: tc.text,
+                              textTransform: 'uppercase',
+                            }}>
+                              TLP:{obs.tlp}
+                            </span>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>{obs.type}</span>
+                            <code style={{ fontSize: '0.85rem', color: 'var(--color-accent)' }}>{obs.value}</code>
+                            {obs.tags.map(tag => (
+                              <span key={tag} style={{ padding: '0.1rem 0.375rem', background: 'rgba(99,102,241,0.1)', borderRadius: '10px', fontSize: '0.7rem', color: '#818cf8' }}>
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{new Date(obs.created_at).toLocaleDateString()}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {/* New Observable Form */}
+                  {showNewObservable && (
+                    <div style={{ padding: '1rem', background: 'var(--color-bg-base)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--color-border)' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <select
+                          value={newObservable.type}
+                          onChange={(e) => setNewObservable({ ...newObservable, type: e.target.value as any })}
+                          style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-surface)', color: 'var(--color-text-primary)', fontSize: '0.85rem' }}
+                        >
+                          <option value="ip">IP</option>
+                          <option value="domain">Domain</option>
+                          <option value="hash">Hash</option>
+                          <option value="url">URL</option>
+                          <option value="email">Email</option>
+                          <option value="file">File</option>
+                        </select>
+                        <input
+                          placeholder="Observable value"
+                          value={newObservable.value}
+                          onChange={(e) => setNewObservable({ ...newObservable, value: e.target.value })}
+                          style={{ flex: 1, minWidth: '200px', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-surface)', color: 'var(--color-text-primary)', fontSize: '0.85rem', fontFamily: 'monospace' }}
+                        />
+                        <select
+                          value={newObservable.tlp}
+                          onChange={(e) => setNewObservable({ ...newObservable, tlp: e.target.value as any })}
+                          style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-surface)', color: 'var(--color-text-primary)', fontSize: '0.85rem' }}
+                        >
+                          <option value="white">TLP:White</option>
+                          <option value="green">TLP:Green</option>
+                          <option value="amber">TLP:Amber</option>
+                          <option value="red">TLP:Red</option>
+                        </select>
+                        <input
+                          placeholder="Tags (comma-separated)"
+                          value={newObservable.tags}
+                          onChange={(e) => setNewObservable({ ...newObservable, tags: e.target.value })}
+                          style={{ flex: 1, minWidth: '150px', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-surface)', color: 'var(--color-text-primary)', fontSize: '0.85rem' }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                        <button
+                          onClick={() => setShowNewObservable(false)}
+                          style={{ padding: '0.375rem 0.75rem', background: 'transparent', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text-secondary)', fontSize: '0.8rem', cursor: 'pointer' }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (newObservable.value.trim()) {
+                              setObservables([...observables, {
+                                id: `o${Date.now()}`,
+                                type: newObservable.type,
+                                value: newObservable.value.trim(),
+                                tlp: newObservable.tlp,
+                                tags: newObservable.tags.split(',').map(t => t.trim()).filter(Boolean),
+                                created_at: new Date().toISOString(),
+                              }]);
+                              setNewObservable({ type: 'ip', value: '', tlp: 'green', tags: '' });
+                              setShowNewObservable(false);
+                            }
+                          }}
+                          style={{ padding: '0.375rem 0.75rem', background: 'var(--color-accent)', color: '#0B1B33', border: 'none', borderRadius: 'var(--radius-sm)', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}
+                        >
+                          Add Observable
                         </button>
                       </div>
-                    );
-                  })}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* ── Templates Tab ──── */}
+              {activeDetailTab === 'templates' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {[
+                    { id: 'tpl1', name: 'Ransomware Incident', description: 'Standard playbook for ransomware incidents. Includes containment, eradication, and recovery steps.', category: 'incident' },
+                    { id: 'tpl2', name: 'Phishing Investigation', description: 'Step-by-step guide for investigating phishing campaigns including IOC extraction.', category: 'investigation' },
+                    { id: 'tpl3', name: 'Data Breach Response', description: 'Comprehensive data breach response workflow with legal and regulatory notifications.', category: 'incident' },
+                    { id: 'tpl4', name: 'Malware Analysis', description: 'Playbook for reverse engineering and analyzing malware samples from endpoint.', category: 'investigation' },
+                  ].map(tpl => (
+                    <div
+                      key={tpl.id}
+                      style={{
+                        padding: '1rem',
+                        borderRadius: 'var(--radius-md)',
+                        background: 'var(--color-bg-base)',
+                        border: '1px solid var(--color-border)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                          <strong style={{ fontSize: '0.9rem' }}>{tpl.name}</strong>
+                          <span style={{ padding: '0.1rem 0.375rem', background: 'rgba(99,102,241,0.1)', borderRadius: '10px', fontSize: '0.7rem', color: '#818cf8', textTransform: 'capitalize' }}>
+                            {tpl.category}
+                          </span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>{tpl.description}</p>
+                      </div>
+                      <button
+                        style={{
+                          padding: '0.375rem 0.75rem',
+                          background: 'rgba(99,102,241,0.1)',
+                          border: '1px solid rgba(99,102,241,0.3)',
+                          borderRadius: 'var(--radius-md)',
+                          color: '#818cf8',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        Apply Template
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

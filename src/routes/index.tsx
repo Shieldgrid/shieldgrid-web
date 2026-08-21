@@ -18,6 +18,7 @@ import CaseDetailPage from '../pages/CaseDetailPage';
 import ConnectorsPage from '../pages/ConnectorsPage';
 import AuditPage from '../pages/AuditPage';
 import AiDashboardPage from '../pages/AiDashboardPage';
+import AiChatPage from '../pages/AiChatPage';
 import VelociraptorPage from '../pages/VelociraptorPage';
 import ShieldgridActionsPage from '../pages/ShieldgridActionsPage';
 import DetectionRulesPage from '../pages/DetectionRulesPage';
@@ -26,6 +27,11 @@ import SchedulerPage from '../pages/SchedulerPage';
 import NetworkConnectorsPage from '../pages/NetworkConnectorsPage';
 import NotificationsPage from '../pages/NotificationsPage';
 import MonitoringPage from '../pages/MonitoringPage';
+import ThreatIntelPage from '../pages/ThreatIntelPage';
+import ScaVulnerabilitiesPage from '../pages/ScaVulnerabilitiesPage';
+import ReportsPage from '../pages/ReportsPage';
+import UserManagementPage from '../pages/UserManagementPage';
+import AgentsPage from '../pages/AgentsPage';
 
 function RouteConfig() {
   const { logout } = useAuth();
@@ -174,6 +180,60 @@ function RouteConfig() {
         element={
           <ProtectedRoute>
             <MonitoringPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/threat-intel"
+        element={
+          <ProtectedRoute>
+            <ThreatIntelPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/sca-vulnerabilities"
+        element={
+          <ProtectedRoute>
+            <ScaVulnerabilitiesPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <ReportsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute requireRole="admin">
+            <UserManagementPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/agents"
+        element={
+          <ProtectedRoute>
+            <AgentsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/ai/chat"
+        element={
+          <ProtectedRoute>
+            <AiChatPage />
           </ProtectedRoute>
         }
       />

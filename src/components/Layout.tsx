@@ -25,10 +25,24 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { label: 'Actions', path: '/actions', icon: '🛡️' },
     { label: 'Detection Rules', path: '/rules', icon: '🎯' },
     { label: 'MITRE Matrix', path: '/mitre', icon: '🗺️' },
-    { label: 'Connectors', path: '/connectors', icon: '🔌', role: 'admin' },
-    { label: 'Audit Log', path: '/audit', icon: '📜', role: 'admin' },
-    { label: 'VQL Shell', path: '/velociraptor', icon: '🖥️', role: 'admin' },
+    { label: '---' },
+    { label: 'Threat Intel', path: '/threat-intel', icon: '🔍' },
+    { label: 'SCA & Vulns', path: '/sca-vulnerabilities', icon: '🛡️' },
+    { label: 'Agent Inventory', path: '/agents', icon: '🖥️' },
+    { label: '---' },
     { label: 'AI Dashboard', path: '/ai', icon: '🧠' },
+    { label: 'AI Chat', path: '/ai/chat', icon: '💬' },
+    { label: 'Scheduler', path: '/scheduler', icon: '⏰' },
+    { label: '---' },
+    { label: 'Network Devices', path: '/network-connectors', icon: '🌐', role: 'admin' },
+    { label: 'Notifications', path: '/notifications', icon: '🔔' },
+    { label: 'Reports', path: '/reports', icon: '📊' },
+    { label: 'Monitoring', path: '/monitoring', icon: '📈' },
+    { label: '---' },
+    { label: 'Connectors', path: '/connectors', icon: '🔌', role: 'admin' },
+    { label: 'VQL Shell', path: '/velociraptor', icon: '🖥️', role: 'admin' },
+    { label: 'Users', path: '/users', icon: '👥', role: 'admin' },
+    { label: 'Audit Log', path: '/audit', icon: '📜', role: 'admin' },
   ];
 
   return (
@@ -60,28 +74,33 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
 
         {/* Links */}
-        <nav style={{ padding: '1rem 0.75rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          {navItems.map((item) => {
+        <nav style={{ padding: '1rem 0.75rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.125rem', overflowY: 'auto' }}>
+          {navItems.map((item, idx) => {
+            if (item.label === '---') {
+              return (
+                <div key={`sep-${idx}`} style={{ height: '1px', background: 'var(--color-border)', margin: '0.375rem 0' }} />
+              );
+            }
             if (item.role && user?.role !== item.role) return null;
             return (
               <NavLink
                 key={item.path}
-                to={item.path}
+                to={item.path!}
                 style={({ isActive }) => ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.75rem',
-                  padding: '0.625rem 0.875rem',
+                  padding: '0.5rem 0.875rem',
                   borderRadius: 'var(--radius-md)',
                   textDecoration: 'none',
-                  fontSize: '0.875rem',
+                  fontSize: '0.8125rem',
                   fontWeight: 500,
                   color: isActive ? '#0B1B33' : 'var(--color-text-secondary)',
                   background: isActive ? 'var(--color-accent)' : 'transparent',
                   transition: 'background 150ms ease, color 150ms ease',
                 })}
               >
-                <span>{item.icon}</span>
+                <span style={{ fontSize: '1rem' }}>{item.icon}</span>
                 <span>{item.label}</span>
               </NavLink>
             );

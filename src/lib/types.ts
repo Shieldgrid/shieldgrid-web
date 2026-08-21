@@ -407,7 +407,49 @@ export interface PerformanceDashboard {
   };
 }
 
+// ── User Management Types ──────────────────────────────────────────────────
 
+export interface UserAccount {
+  id: string;
+  username: string;
+  email: string;
+  full_name: string;
+  role: 'admin' | 'analyst' | 'viewer' | 'api_only';
+  is_active: boolean;
+  last_login: string | null;
+  created_at: string;
+  mfa_enabled: boolean;
+  permissions: string[];
+}
+
+// ── Threat Intel Enrichment Bulk Types ─────────────────────────────────────
+
+export interface EnrichIocsResponse {
+  count: number;
+  results: ThreatIntelResult[];
+}
+
+// ── Agent Management Types ─────────────────────────────────────────────────
+
+export interface Agent {
+  id: string;
+  name: string;
+  type: 'wazuh' | 'velociraptor';
+  status: 'online' | 'offline' | 'error';
+  os: string | null;
+  ip: string | null;
+  version: string | null;
+  last_seen: string | null;
+  heartbeat: string | null;
+}
+
+export interface AgentHealthSummary {
+  total_agents: number;
+  online_agents: number;
+  offline_agents: number;
+  error_agents: number;
+  by_connector: Record<string, { online: number; offline: number; error: number }>;
+}
 
 
 
