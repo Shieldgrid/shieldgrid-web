@@ -35,7 +35,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { label: 'Agent Inventory', path: '/agents', icon: '🖥️' },
     { label: '---' },
     { label: 'AI Dashboard', path: '/ai', icon: '🧠' },
-    { label: 'AI Chat', path: '/ai/chat', icon: '💬' },
     { label: 'Scheduler', path: '/scheduler', icon: '⏰' },
     { label: '---' },
     { label: 'Network Devices', path: '/network-connectors', icon: '🌐', role: 'admin' },

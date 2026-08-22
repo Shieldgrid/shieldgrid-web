@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Layout } from '../components/Layout';
 
 interface Vulnerability {
   id: string;
@@ -203,7 +202,6 @@ export default function ScaVulnerabilitiesPage() {
   const avgScaScore = scaPolicies.length > 0 ? (scaPolicies.reduce((sum, p) => sum + p.score, 0) / scaPolicies.length).toFixed(1) : '0';
 
   return (
-    <Layout>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Header */}
         <div>
@@ -497,6 +495,5 @@ export default function ScaVulnerabilitiesPage() {
           </div>
         )}
       </div>
-    </Layout>
   );
 }

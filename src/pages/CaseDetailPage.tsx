@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Layout } from '../components/Layout';
 import { useAuth } from '../lib/auth';
 import {
   fetchCase,
@@ -208,7 +207,6 @@ export default function CaseDetailPage() {
   };
 
   return (
-    <Layout>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Navigation back button */}
         <div>
@@ -1194,6 +1192,5 @@ export default function CaseDetailPage() {
           </div>
         )}
       </div>
-    </Layout>
   );
 }

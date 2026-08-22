@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Layout } from '../components/Layout';
 
 interface ReportTemplate {
   id: string;
@@ -197,7 +196,6 @@ export default function ReportsPage() {
   };
 
   return (
-    <Layout>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Header */}
         <div>
@@ -479,6 +477,5 @@ export default function ReportsPage() {
           </div>
         )}
       </div>
-    </Layout>
   );
 }

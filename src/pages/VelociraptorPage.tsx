@@ -10,7 +10,6 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Layout } from '../components/Layout';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { ErrorDisplay } from '../components/ErrorDisplay';
 import { fetchVeloArtifacts, fetchVeloClients, runVqlQuery } from '../lib/api';
@@ -231,7 +230,6 @@ export default function VelociraptorPage() {
   };
 
   return (
-    <Layout>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -703,6 +701,5 @@ export default function VelociraptorPage() {
           </div>
         </div>
       </div>
-    </Layout>
   );
 }

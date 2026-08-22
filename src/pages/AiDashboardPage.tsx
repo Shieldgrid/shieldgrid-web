@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import Markdown from 'react-markdown';
 import OpenAI from 'openai';
 import { 
   Bot, 
@@ -43,6 +44,184 @@ function resolveEndpoint(raw: string): { baseUrl: string; isProxy: boolean } {
 function buildModelsUrl(baseUrl: string, isProxy: boolean): string {
   if (baseUrl.endsWith('/v1')) return `${baseUrl}/models`;
   return isProxy ? `${baseUrl}/models` : `${baseUrl}/v1/models`;
+}
+
+// ── Tool Output Formatting ──────────────────────────────────────────────────
+
+function formatToolOutput(raw: string): string {
+  try {
+    let cleaned = raw.trim();
+    if (cleaned.startsWith('```')) {
+      cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+    }
+    const data = JSON.parse(cleaned);
+
+    // Wazuh agents response (wrapped in {agents, summary})
+    if (data?.agents && data?.summary) {
+      const { agents, summary } = data;
+      let md = `### 🖥️ Wazuh Agents\n\n`;
+      md += `| Status | Count |\n|--------|-------|\n`;
+      md += `| 🟢 Active | ${summary.active} |\n`;
+      md += `| 🔴 Disconnected | ${summary.disconnected} |\n`;
+      md += `| ⚪ Never Connected | ${summary.never_connected} |\n`;
+      md += `| 🟡 Pending | ${summary.pending} |\n`;
+      md += `| **Total** | **${summary.total}** |\n\n`;
+      if (agents.length > 0) {
+        md += `| ID | Name | OS | Version | Status |\n|----|------|----|---------|--------|\n`;
+        agents.forEach((a: any) => {
+          const s = a.status === 'active' ? '🟢' : '🔴';
+          md += `| ${a.id} | ${a.name} | ${a.os_name || 'N/A'} | ${a.version || 'N/A'} | ${s} ${a.status} |\n`;
+        });
+      }
+      if (data.elapsed_ms) md += `\n*Query took ${data.elapsed_ms}ms*\n`;
+      return md;
+    }
+
+    // Array of alerts
+    if (Array.isArray(data) && data.length > 0 && data[0]?.connector_id && data[0]?.severity) {
+      let md = `### ⚡ Alerts (${data.length})\n\n`;
+      const bySev: Record<string, number> = {};
+      data.forEach((a: any) => { bySev[a.severity] = (bySev[a.severity] || 0) + 1; });
+      md += `| Severity | Count |\n|----------|-------|\n`;
+      Object.entries(bySev).forEach(([s, c]) => {
+        const e = s === 'critical' ? '🔴' : s === 'high' ? '🟠' : s === 'medium' ? '🟡' : '🔵';
+        md += `| ${e} ${s} | ${c} |\n`;
+      });
+      md += `\n**Latest ${Math.min(5, data.length)}:**\n\n`;
+      data.slice(0, 5).forEach((a: any, i: number) => {
+        const e = a.severity === 'critical' ? '🔴' : a.severity === 'high' ? '🟠' : a.severity === 'medium' ? '🟡' : '🔵';
+        const desc = a.raw_payload?.rule?.description || a.raw_payload?.full_log?.slice(0, 80) || '';
+        md += `${i + 1}. ${e} **${a.severity}** — ${a.source} via ${a.connector_id}\n`;
+        if (desc) md += `   > ${desc}\n`;
+        md += `   *${new Date(a.timestamp).toLocaleString()}*\n\n`;
+      });
+      return md;
+    }
+
+    // Array of action templates
+    if (Array.isArray(data) && data.length > 0 && data[0]?.params_schema && data[0]?.category) {
+      let md = `### 🛡️ Response Actions (${data.length})\n\n`;
+      md += `| Action | Category | Risk | Provider |\n|--------|----------|------|----------|\n`;
+      data.forEach((t: any) => {
+        const r = t.risk_level === 'high' ? '🔴' : t.risk_level === 'medium' ? '🟡' : '🟢';
+        md += `| ${t.display_name} | ${t.category} | ${r} ${t.risk_level} | ${t.provider} |\n`;
+      });
+      return md;
+    }
+
+    // Array of cases
+    if (Array.isArray(data) && data.length > 0 && data[0]?.title !== undefined && data[0]?.status !== undefined) {
+      let md = `### 📁 Cases (${data.length})\n\n`;
+      md += `| Title | Status | Created |\n|-------|--------|----------|\n`;
+      data.forEach((c: any) => {
+        const s = c.status === 'Open' ? '🟡' : c.status === 'Resolved' ? '🟢' : '⚪';
+        md += `| ${c.title} | ${s} ${c.status} | ${new Date(c.created_at).toLocaleDateString()} |\n`;
+      });
+      return md;
+    }
+
+    // Array of detection rules
+    if (Array.isArray(data) && data.length > 0 && data[0]?.query_or_vql !== undefined) {
+      let md = `### 🎯 Detection Rules (${data.length})\n\n`;
+      md += `| Rule | Severity | Category | Connector |\n|------|----------|----------|------------|\n`;
+      data.forEach((r: any) => {
+        const e = r.severity === 'critical' ? '🔴' : r.severity === 'high' ? '🟠' : r.severity === 'medium' ? '🟡' : '🔵';
+        md += `| ${r.name} | ${e} ${r.severity} | ${r.category} | ${r.connector_id} |\n`;
+      });
+      return md;
+    }
+
+    // Health response
+    if (data?.status && data?.connectors) {
+      let md = `### 🏥 System Health — ${data.status === 'ok' ? '🟢 Healthy' : '🔴 Unhealthy'}\n\n`;
+      if (data.connectors) {
+        md += `| Connector | Status |\n|-----------|--------|\n`;
+        data.connectors.forEach((c: any) => {
+          const e = c.status === 'healthy' ? '🟢' : c.status === 'degraded' ? '🟡' : '🔴';
+          md += `| ${c.id || c.name} | ${e} ${c.status} |\n`;
+        });
+      }
+      if (data.metrics) {
+        md += `\n**Metrics:**\n`;
+        md += `- Alerts (1h): ${data.metrics.alerts_last_hour ?? 'N/A'}\n`;
+        md += `- Alerts (24h): ${data.metrics.alerts_last_24h ?? 'N/A'}\n`;
+      }
+      return md;
+    }
+
+    // MITRE matrix
+    if (data?.columns && data?.total_techniques !== undefined) {
+      let md = `### 🗺️ MITRE ATT&CK Matrix\n\n**${data.total_techniques}** techniques · **${data.total_active_detections}** active detections\n\n`;
+      data.columns.forEach((col: any) => {
+        if (col.techniques?.length > 0) {
+          md += `**${col.tactic.name}**\n`;
+          col.techniques.forEach((t: any) => {
+            md += `- ${t.id} **${t.name}** — ${t.detection_count} detections\n`;
+          });
+          md += `\n`;
+        }
+      });
+      return md;
+    }
+
+    // Agents array
+    if (Array.isArray(data) && data.length > 0 && data[0]?.status !== undefined && data[0]?.os_name !== undefined) {
+      let md = `### 🖥️ Agents (${data.length})\n\n`;
+      md += `| ID | Name | OS | Status |\n|----|------|----|--------|\n`;
+      data.forEach((a: any) => {
+        const e = a.status === 'active' ? '🟢' : '🔴';
+        md += `| ${a.id} | ${a.name} | ${a.os_name || 'N/A'} | ${e} ${a.status} |\n`;
+      });
+      return md;
+    }
+
+    // Generic object
+    if (!Array.isArray(data) && typeof data === 'object') {
+      const keys = Object.keys(data);
+      if (keys.length <= 12) {
+        let md = `| Field | Value |\n|-------|-------|\n`;
+        keys.forEach(k => {
+          const val = typeof data[k] === 'object' ? JSON.stringify(data[k]).slice(0, 100) : String(data[k]);
+          md += `| ${k} | ${val} |\n`;
+        });
+        return md;
+      }
+    }
+
+    return `\`\`\`json\n${JSON.stringify(data, null, 2).slice(0, 2000)}\n\`\`\``;
+  } catch {
+    return raw;
+  }
+}
+
+function ToolOutputBlock({ raw }: { raw: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const formatted = formatToolOutput(raw);
+  const lineCount = raw.split('\n').length;
+  const shouldCollapse = lineCount > 15;
+
+  return (
+    <div className="border border-slate-700 rounded-lg overflow-hidden bg-slate-950/50">
+      <button
+        onClick={() => shouldCollapse && setExpanded(!expanded)}
+        className={`w-full flex items-center justify-between px-3 py-2 text-xs text-slate-400 hover:bg-slate-800/50 transition-colors ${shouldCollapse ? 'cursor-pointer' : 'cursor-default'}`}
+      >
+        <span className="flex items-center gap-2">
+          <Wrench className="w-3.5 h-3.5 text-indigo-400" />
+          Tool Output
+          {!expanded && shouldCollapse && <span className="text-slate-600">({lineCount} lines)</span>}
+        </span>
+        {shouldCollapse && (
+          <span className="text-slate-500 text-[11px]">{expanded ? '▲ Collapse' : '▼ Expand'}</span>
+        )}
+      </button>
+      {(expanded || !shouldCollapse) && (
+        <div className="px-3 pb-3 text-sm prose prose-invert prose-sm max-w-none prose-headings:text-white prose-p:text-slate-300 prose-strong:text-white prose-table:border-collapse prose-th:border prose-th:border-slate-700 prose-th:px-3 prose-th:py-1.5 prose-th:text-left prose-th:text-slate-400 prose-td:border prose-td:border-slate-700 prose-td:px-3 prose-td:py-1.5 prose-td:text-slate-300 prose-li:text-slate-300">
+          <Markdown>{formatted}</Markdown>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function AiDashboardPage() {
@@ -458,15 +637,7 @@ export default function AiDashboardPage() {
             {messages.map((msg, idx) => {
               if (msg.role === 'tool') {
                 return (
-                  <div key={idx} className="p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs font-mono text-slate-400">
-                    <div className="flex items-center gap-1.5 text-indigo-400 font-semibold mb-1">
-                      <Wrench className="w-3.5 h-3.5" />
-                      Tool Output
-                    </div>
-                    <pre className="overflow-x-auto max-h-32 text-[11px] text-slate-300">
-                      {msg.content}
-                    </pre>
-                  </div>
+                  <ToolOutputBlock key={idx} raw={msg.content} />
                 );
               }
 
@@ -486,9 +657,15 @@ export default function AiDashboardPage() {
                     <div className="text-[10px] font-semibold tracking-wider uppercase opacity-60 mb-1">
                       {isUser ? 'SOC Analyst' : 'Shieldgrid AI'}
                     </div>
-                    <div className="whitespace-pre-wrap leading-relaxed">
-                      {msg.content}
-                    </div>
+                    {!isUser ? (
+                      <div className="prose prose-invert prose-sm max-w-none prose-headings:text-white prose-p:text-slate-300 prose-strong:text-white prose-table:border-collapse prose-th:border prose-th:border-slate-700 prose-th:px-3 prose-th:py-1.5 prose-th:text-left prose-th:text-slate-400 prose-td:border prose-td:border-slate-700 prose-td:px-3 prose-td:py-1.5 prose-td:text-slate-300 prose-li:text-slate-300 prose-code:text-indigo-400 prose-code:bg-slate-950 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-a:text-indigo-400 prose-a:no-underline hover:prose-a:underline leading-relaxed">
+                        <Markdown>{msg.content}</Markdown>
+                      </div>
+                    ) : (
+                      <div className="whitespace-pre-wrap leading-relaxed">
+                        {msg.content}
+                      </div>
+                    )}
                   </div>
                 </div>
               );

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Layout } from '../components/Layout';
 import { lookupIoc, enrichIocs, lookupEpss } from '../lib/api';
 import type { ThreatIntelResult } from '../lib/types';
 
@@ -165,7 +164,6 @@ export default function ThreatIntelPage() {
   };
 
   return (
-    <Layout>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Header */}
         <div>
@@ -399,6 +397,5 @@ export default function ThreatIntelPage() {
           </div>
         )}
       </div>
-    </Layout>
   );
 }

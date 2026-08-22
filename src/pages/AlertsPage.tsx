@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { Layout } from '../components/Layout';
 import { useAuth } from '../lib/auth';
 import { fetchAlerts, updateAlertStatus } from '../lib/api';
 import type { NormalizedAlert, Severity, AlertStatus } from '../lib/types';
@@ -78,7 +77,6 @@ export default function AlertsPage() {
   };
 
   return (
-    <Layout>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -327,7 +325,6 @@ export default function AlertsPage() {
           </div>
         )}
       </div>
-    </Layout>
   );
 }
 

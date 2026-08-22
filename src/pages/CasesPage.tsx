@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layout } from '../components/Layout';
 import { useAuth } from '../lib/auth';
 import { fetchCases, createCase } from '../lib/api';
 import type { Case } from '../lib/types';
@@ -57,7 +56,6 @@ export default function CasesPage() {
   };
 
   return (
-    <Layout>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -236,6 +234,5 @@ export default function CasesPage() {
           </div>
         )}
       </div>
-    </Layout>
   );
 }

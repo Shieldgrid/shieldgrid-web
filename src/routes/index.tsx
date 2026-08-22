@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from '../lib/auth';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { setUnauthorizedHandler } from '../lib/api';
 
+import { Layout } from '../components/Layout';
 import LoginPage from '../pages/LoginPage';
 import DashboardPage from '../pages/DashboardPage';
 import AlertsPage from '../pages/AlertsPage';
@@ -18,7 +19,6 @@ import CaseDetailPage from '../pages/CaseDetailPage';
 import ConnectorsPage from '../pages/ConnectorsPage';
 import AuditPage from '../pages/AuditPage';
 import AiDashboardPage from '../pages/AiDashboardPage';
-import AiChatPage from '../pages/AiChatPage';
 import VelociraptorPage from '../pages/VelociraptorPage';
 import ShieldgridActionsPage from '../pages/ShieldgridActionsPage';
 import DetectionRulesPage from '../pages/DetectionRulesPage';
@@ -49,11 +49,12 @@ function RouteConfig() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
 
+      {/* All protected routes are wrapped in Layout for consistent sidebar */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <Layout><DashboardPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -62,7 +63,7 @@ function RouteConfig() {
         path="/alerts"
         element={
           <ProtectedRoute>
-            <AlertsPage />
+            <Layout><AlertsPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -71,7 +72,7 @@ function RouteConfig() {
         path="/cases"
         element={
           <ProtectedRoute>
-            <CasesPage />
+            <Layout><CasesPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -80,7 +81,7 @@ function RouteConfig() {
         path="/cases/:id"
         element={
           <ProtectedRoute>
-            <CaseDetailPage />
+            <Layout><CaseDetailPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -89,7 +90,7 @@ function RouteConfig() {
         path="/connectors"
         element={
           <ProtectedRoute requireRole="admin">
-            <ConnectorsPage />
+            <Layout><ConnectorsPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -98,7 +99,7 @@ function RouteConfig() {
         path="/audit"
         element={
           <ProtectedRoute requireRole="admin">
-            <AuditPage />
+            <Layout><AuditPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -107,7 +108,7 @@ function RouteConfig() {
         path="/ai"
         element={
           <ProtectedRoute>
-            <AiDashboardPage />
+            <Layout><AiDashboardPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -116,7 +117,7 @@ function RouteConfig() {
         path="/velociraptor"
         element={
           <ProtectedRoute requireRole="admin">
-            <VelociraptorPage />
+            <Layout><VelociraptorPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -125,7 +126,7 @@ function RouteConfig() {
         path="/actions"
         element={
           <ProtectedRoute>
-            <ShieldgridActionsPage />
+            <Layout><ShieldgridActionsPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -134,7 +135,7 @@ function RouteConfig() {
         path="/rules"
         element={
           <ProtectedRoute>
-            <DetectionRulesPage />
+            <Layout><DetectionRulesPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -143,7 +144,7 @@ function RouteConfig() {
         path="/mitre"
         element={
           <ProtectedRoute>
-            <MitreMatrixPage />
+            <Layout><MitreMatrixPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -152,7 +153,7 @@ function RouteConfig() {
         path="/scheduler"
         element={
           <ProtectedRoute>
-            <SchedulerPage />
+            <Layout><SchedulerPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -161,7 +162,7 @@ function RouteConfig() {
         path="/network-connectors"
         element={
           <ProtectedRoute requireRole="admin">
-            <NetworkConnectorsPage />
+            <Layout><NetworkConnectorsPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -170,7 +171,7 @@ function RouteConfig() {
         path="/notifications"
         element={
           <ProtectedRoute>
-            <NotificationsPage />
+            <Layout><NotificationsPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -179,7 +180,7 @@ function RouteConfig() {
         path="/monitoring"
         element={
           <ProtectedRoute>
-            <MonitoringPage />
+            <Layout><MonitoringPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -188,7 +189,7 @@ function RouteConfig() {
         path="/threat-intel"
         element={
           <ProtectedRoute>
-            <ThreatIntelPage />
+            <Layout><ThreatIntelPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -197,7 +198,7 @@ function RouteConfig() {
         path="/sca-vulnerabilities"
         element={
           <ProtectedRoute>
-            <ScaVulnerabilitiesPage />
+            <Layout><ScaVulnerabilitiesPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -206,7 +207,7 @@ function RouteConfig() {
         path="/reports"
         element={
           <ProtectedRoute>
-            <ReportsPage />
+            <Layout><ReportsPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -215,7 +216,7 @@ function RouteConfig() {
         path="/users"
         element={
           <ProtectedRoute requireRole="admin">
-            <UserManagementPage />
+            <Layout><UserManagementPage /></Layout>
           </ProtectedRoute>
         }
       />
@@ -224,16 +225,7 @@ function RouteConfig() {
         path="/agents"
         element={
           <ProtectedRoute>
-            <AgentsPage />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/ai/chat"
-        element={
-          <ProtectedRoute>
-            <AiChatPage />
+            <Layout><AgentsPage /></Layout>
           </ProtectedRoute>
         }
       />

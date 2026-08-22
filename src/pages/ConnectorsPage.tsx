@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Layout } from '../components/Layout';
 import { fetchHealth } from '../lib/api';
 import type { HealthResponse } from '../lib/types';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
@@ -28,7 +27,6 @@ export default function ConnectorsPage() {
   }, [loadHealth]);
 
   return (
-    <Layout>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -128,6 +126,5 @@ export default function ConnectorsPage() {
           </div>
         )}
       </div>
-    </Layout>
   );
 }
