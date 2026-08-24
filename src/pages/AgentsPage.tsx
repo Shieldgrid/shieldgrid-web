@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { fetchVeloClients } from '../lib/api';
+import { API_BASE_URL } from '../lib/api';
 import type { VqlClient } from '../lib/types';
+import { Search, Monitor, Wifi, WifiOff, Server, RefreshCw } from 'lucide-react';
 
 interface WazuhAgent {
   id: string;
@@ -20,7 +21,6 @@ export default function AgentsPage() {
   const [wazuhAgents, setWazuhAgents] = useState<WazuhAgent[]>([]);
   const [veloClients, setVeloClients] = useState<VqlClient[]>([]);
   const [loading, setLoading] = useState(true);
-  void loading;
   const [filter, setFilter] = useState<AgentSource>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
@@ -28,13 +28,17 @@ export default function AgentsPage() {
   useEffect(() => { loadAgents(); }, []);
 
   async function loadAgents() {
+    setLoading(true);
     try {
-      const [wazuhRes, veloRes] = await Promise.all([
-        fetch('/api/v1/wazuh/agents', { credentials: 'include' })
-          .then(r => r.ok ? r.json() : { agents: [] })
-          .catch(() => ({ agents: [] })),
-        fetchVeloClients().catch(() => ({ rows: [] })),
-      ]);
+      const wazuhP = fetch(`${API_BASE_URL}/api/v1/wazuh/agents`, { credentials: 'include' })
+        .then(r => r.ok ? r.json() : { agents: [] })
+        .catch(() => ({ agents: [] }));
+
+      const veloP = fetch(`${API_BASE_URL}/api/v1/velociraptor/clients`, { credentials: 'include' })
+        .then(r => r.ok ? r.json() : { rows: [] })
+        .catch(() => ({ rows: [] }));
+
+      const [wazuhRes, veloRes] = await Promise.all([wazuhP, veloP]);
       setWazuhAgents(wazuhRes.agents || []);
       setVeloClients(veloRes.rows || []);
     } catch (err) {
@@ -84,88 +88,149 @@ export default function AgentsPage() {
   const veloActive = veloClients.length;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Agent Management</h1>
-        <p className="text-slate-400 text-sm mt-1">Unified view of all endpoints across Wazuh and Velociraptor</p>
+    <div className="flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-3 border-b border-[#333340]">
+        <div className="flex items-center gap-3">
+          <Server size={14} className="text-gray-500" />
+          <span className="text-xs font-medium tracking-widest text-gray-400 uppercase">Agent Management</span>
+          <span className="text-xs text-gray-500 font-mono">{allAgents.length} registered</span>
+        </div>
+        <button
+          onClick={loadAgents}
+          disabled={loading}
+          className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-gray-400 bg-[#1E1E24] border border-[#333340] rounded-sm hover:bg-[#2a2a32] transition-colors"
+        >
+          <RefreshCw size={10} className={loading ? 'animate-spin' : ''} />
+          REFRESH
+        </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-[#22D3A5]">{wazuhActive}</div>
-          <div className="text-sm text-slate-400">Wazuh Active</div>
+      {/* Stats Bar */}
+      <div className="flex items-center gap-6 px-5 py-2.5 border-b border-[#333340] bg-[#18181c]">
+        <div className="flex items-center gap-2">
+          <Wifi size={10} className="text-emerald-500" />
+          <span className="text-xs font-mono text-gray-300">{wazuhActive}</span>
+          <span className="text-[10px] text-gray-500 uppercase">Wazuh Active</span>
         </div>
-        <div className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-[#E71D36]">{wazuhDisconnected}</div>
-          <div className="text-sm text-slate-400">Wazuh Disconnected</div>
+        <div className="w-px h-3 bg-[#333340]" />
+        <div className="flex items-center gap-2">
+          <WifiOff size={10} className="text-red-500" />
+          <span className="text-xs font-mono text-gray-300">{wazuhDisconnected}</span>
+          <span className="text-[10px] text-gray-500 uppercase">Disconnected</span>
         </div>
-        <div className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-[#4FD1FF]">{veloActive}</div>
-          <div className="text-sm text-slate-400">Velociraptor Clients</div>
+        <div className="w-px h-3 bg-[#333340]" />
+        <div className="flex items-center gap-2">
+          <Monitor size={10} className="text-slate-400" />
+          <span className="text-xs font-mono text-gray-300">{veloActive}</span>
+          <span className="text-[10px] text-gray-500 uppercase">Velociraptor</span>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-4 items-center">
-        <div className="flex gap-2">
+      {/* Filter Bar */}
+      <div className="flex items-center gap-3 px-5 py-2.5 border-b border-[#333340]">
+        <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Source</span>
+        <div className="flex gap-1">
           {(['all', 'wazuh', 'velociraptor'] as AgentSource[]).map(s => (
-            <button key={s} onClick={() => setFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filter === s ? 'bg-[#4FD1FF] text-[#0B1B33]' : 'bg-[#132B4D] text-slate-300 border border-[#1E3A5F] hover:border-[#4FD1FF]/30'}`}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
+            <button
+              key={s}
+              onClick={() => setFilter(s)}
+              className={`px-2.5 py-1 text-[11px] font-medium rounded-sm transition-colors ${
+                filter === s
+                  ? 'bg-slate-600 text-white'
+                  : 'text-gray-500 hover:text-gray-300 hover:bg-[#1E1E24]'
+              }`}
+            >
+              {s.toUpperCase()}
             </button>
           ))}
         </div>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-[#132B4D] border border-[#1E3A5F] rounded-lg px-3 py-1.5 text-sm text-white">
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="disconnected">Disconnected</option>
-          <option value="pending">Pending</option>
+        <div className="w-px h-3 bg-[#333340]" />
+        <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</span>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="bg-[#1E1E24] border border-[#333340] rounded-sm px-2 py-1 text-[11px] font-mono text-gray-300 focus:outline-none"
+        >
+          <option value="all">ALL</option>
+          <option value="active">ACTIVE</option>
+          <option value="disconnected">DISCONNECTED</option>
+          <option value="pending">PENDING</option>
         </select>
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search agents..."
-          className="bg-[#132B4D] border border-[#1E3A5F] rounded-lg px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#4FD1FF] flex-1" />
+        <div className="w-px h-3 bg-[#333340]" />
+        <div className="flex items-center gap-1.5 flex-1">
+          <Search size={10} className="text-gray-500" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search agents..."
+            className="bg-transparent text-[11px] font-mono text-gray-300 placeholder-gray-600 focus:outline-none flex-1"
+          />
+        </div>
+        <span className="text-[10px] font-mono text-gray-600">
+          {filtered.length} / {allAgents.length}
+        </span>
       </div>
 
       {/* Agent Table */}
-      <div className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl overflow-hidden">
+      <div>
         <table className="w-full">
-          <thead className="bg-[#0B1B33]">
+          <thead className="sticky top-0 bg-[#18181c] border-b border-[#333340]">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Agent</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">OS</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Source</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Last Seen</th>
+              <th className="px-5 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wider">Agent</th>
+              <th className="px-5 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wider">IP</th>
+              <th className="px-5 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wider">OS</th>
+              <th className="px-5 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wider">Version</th>
+              <th className="px-5 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wider">Source</th>
+              <th className="px-5 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-5 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wider">Last Seen</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#1E3A5F]">
+          <tbody className="divide-y divide-[#252530]">
             {filtered.map((a) => (
-              <tr key={`${a.source}-${a.id}`} className="hover:bg-[#1A3560] transition-colors">
-                <td className="px-4 py-3">
-                  <div className="text-white text-sm font-medium">{a.name}</div>
-                  <div className="text-slate-500 text-xs">{a.id}</div>
+              <tr key={`${a.source}-${a.id}`} className="hover:bg-[#1a1a22] transition-colors">
+                <td className="px-5 py-2">
+                  <div className="text-[12px] font-mono text-gray-200">{a.name}</div>
+                  <div className="text-[10px] font-mono text-gray-600">{a.id}</div>
                 </td>
-                <td className="px-4 py-3 text-slate-300 text-sm">{a.os}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    a.source === 'wazuh' ? 'bg-orange-500/20 text-orange-400' : 'bg-purple-500/20 text-purple-400'
+                <td className="px-5 py-2 text-[11px] font-mono text-gray-400">
+                  {a.ip || '--'}
+                </td>
+                <td className="px-5 py-2">
+                  <div className="text-[11px] font-mono text-gray-300">{a.os}</div>
+                  {a.os !== 'Unknown' && (
+                    <div className="text-[10px] font-mono text-gray-600">{a.version}</div>
+                  )}
+                </td>
+                <td className="px-5 py-2 text-[10px] font-mono text-gray-500">
+                  {a.version || '--'}
+                </td>
+                <td className="px-5 py-2">
+                  <span className={`text-[10px] font-medium uppercase ${
+                    a.source === 'wazuh' ? 'text-amber-500' : 'text-slate-400'
                   }`}>
                     {a.source}
                   </span>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-5 py-2">
                   <StatusBadge status={a.status} />
                 </td>
-                <td className="px-4 py-3 text-slate-400 text-sm">
-                  {a.lastSeen ? new Date(a.lastSeen).toLocaleString() : '—'}
+                <td className="px-5 py-2 text-[10px] font-mono text-gray-500">
+                  {a.lastSeen ? new Date(a.lastSeen).toLocaleString() : '--'}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {filtered.length === 0 && (
-          <div className="p-8 text-center text-slate-500">No agents found</div>
+        {filtered.length === 0 && !loading && (
+          <div className="flex items-center justify-center py-12 text-[11px] text-gray-600 font-mono">
+            NO AGENTS MATCH CURRENT FILTERS
+          </div>
+        )}
+        {loading && (
+          <div className="flex items-center justify-center py-12 text-[11px] text-gray-600 font-mono">
+            LOADING AGENTS...
+          </div>
         )}
       </div>
     </div>
@@ -174,14 +239,20 @@ export default function AgentsPage() {
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    active: 'bg-green-500/20 text-green-400',
-    disconnected: 'bg-red-500/20 text-red-400',
-    pending: 'bg-yellow-500/20 text-yellow-400',
-    never_connected: 'bg-slate-500/20 text-slate-400',
+    active: 'text-emerald-500',
+    disconnected: 'text-red-500',
+    pending: 'text-amber-500',
+    never_connected: 'text-gray-500',
+  };
+  const labels: Record<string, string> = {
+    active: 'ACTIVE',
+    disconnected: 'OFFLINE',
+    pending: 'PENDING',
+    never_connected: 'NEVER',
   };
   return (
-    <span className={`px-2 py-1 rounded text-xs font-medium ${colors[status] || 'bg-slate-500/20 text-slate-400'}`}>
-      {status?.replace('_', ' ') || 'unknown'}
+    <span className={`text-[10px] font-mono font-medium ${colors[status] || 'text-gray-500'}`}>
+      {labels[status] || status?.replace('_', ' ')?.toUpperCase() || 'UNKNOWN'}
     </span>
   );
 }
