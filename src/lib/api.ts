@@ -100,9 +100,11 @@ export async function fetchMe(): Promise<import('./types').JwtClaims> {
 }
 
 export async function logoutApi(): Promise<{ message: string }> {
-  return apiFetch<{ message: string }>('/api/v1/auth/logout', {
+  return fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
     method: 'POST',
-  });
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+  }).then(r => r.ok ? r.json() : { message: 'logged out' }).catch(() => ({ message: 'logged out' }));
 }
 
 export async function refreshSession(): Promise<{ message: string }> {
@@ -112,7 +114,8 @@ export async function refreshSession(): Promise<{ message: string }> {
 // ── Health / Connectors Endpoint ─────────────────────────────────────────────
 
 export async function fetchHealth(): Promise<HealthResponse> {
-  return apiFetch<HealthResponse>('/health');
+  return fetch(`${API_BASE_URL}/health`, { credentials: 'include' })
+    .then(r => r.ok ? r.json() : { status: 'unknown', connectors: [] });
 }
 
 // ── Alerts Endpoints ─────────────────────────────────────────────────────────
@@ -359,6 +362,37 @@ export async function fetchSystemHealth(): Promise<import('./types').SystemHealt
 
 export async function fetchPerformanceDashboard(): Promise<import('./types').PerformanceDashboard> {
   return apiFetch<import('./types').PerformanceDashboard>('/api/v1/monitoring/dashboard');
+}
+
+// ── Unified Agents Endpoints ────────────────────────────────────────────────
+
+export interface UnifiedAgent {
+  id: string;
+  hostname: string;
+  wazuh_id?: string;
+  wazuh_status?: string;
+  wazuh_last_seen?: string;
+  wazuh_ip?: string;
+  wazuh_os?: string;
+  wazuh_version?: string;
+  velo_id?: string;
+  velo_status?: string;
+  velo_last_seen?: string;
+  velo_version?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function fetchUnifiedAgents(): Promise<{ agents: UnifiedAgent[]; count: number }> {
+  return fetch(`${API_BASE_URL}/api/v1/agents`, { credentials: 'include' })
+    .then(r => r.ok ? r.json() : { agents: [], count: 0 })
+    .catch(() => ({ agents: [], count: 0 }));
+}
+
+export async function syncUnifiedAgents(): Promise<{ success: boolean; message: string; wazuh_count: number; velo_count: number }> {
+  return fetch(`${API_BASE_URL}/api/v1/agents/sync`, { method: 'POST', credentials: 'include' })
+    .then(r => r.ok ? r.json() : { success: false, message: 'Sync failed', wazuh_count: 0, velo_count: 0 })
+    .catch(() => ({ success: false, message: 'Network error', wazuh_count: 0, velo_count: 0 }));
 }
 
 
