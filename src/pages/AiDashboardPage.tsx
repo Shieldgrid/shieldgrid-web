@@ -1,20 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import Markdown from 'react-markdown';
 import OpenAI from 'openai';
-import { 
-  Bot, 
-  Send, 
-  Settings, 
-  Sparkles, 
-  ShieldAlert, 
-  Activity, 
-  Layers, 
-  ShieldCheck, 
-  ChevronRight, 
-  Wrench, 
-  Search,
-  Zap,
-  Play
+import {
+  Send, Settings, Search, Activity,
+  ChevronRight, Wrench, Play, Terminal
 } from 'lucide-react';
 import { fetchSecurityPostureSummary, runAiTriage } from '../lib/api';
 import type { SecurityPostureSummary, TriageReport } from '../lib/types';
@@ -30,10 +19,8 @@ function readStored(key: string, fallback: string): string {
 function normalizeEndpoint(endpoint: string): string {
   const trimmed = endpoint.trim();
   if (!trimmed) return '';
-  if (trimmed.startsWith('/')) {
-    return `${window.location.origin}${trimmed}`;
-  }
-  return trimmed.replace(/\/+$/, '');
+  if (trimmed.startsWith('/')) return `${window.location.origin}${trimmed}`;
+  return trimmed.replace(/[\/]+$/g, '');
 }
 
 function resolveEndpoint(raw: string): { baseUrl: string; isProxy: boolean } {
@@ -46,118 +33,94 @@ function buildModelsUrl(baseUrl: string, isProxy: boolean): string {
   return isProxy ? `${baseUrl}/models` : `${baseUrl}/v1/models`;
 }
 
-// ── Tool Output Formatting ──────────────────────────────────────────────────
+// ── Tool Output Formatting (no emojis, industrial style) ─────────────────────
 
 function formatToolOutput(raw: string): string {
   try {
     let cleaned = raw.trim();
     if (cleaned.startsWith('```')) {
-      cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+      cleaned = cleaned.replace(/^```(?:json)?\\n?/, '').replace(/\\n?```$/, '');
     }
     const data = JSON.parse(cleaned);
 
-    // Wazuh agents response (wrapped in {agents, summary})
+    // Wazuh agents
     if (data?.agents && data?.summary) {
       const { agents, summary } = data;
-      let md = `### 🖥️ Wazuh Agents\n\n`;
+      let md = `### Wazuh Agents\n\n`;
       md += `| Status | Count |\n|--------|-------|\n`;
-      md += `| 🟢 Active | ${summary.active} |\n`;
-      md += `| 🔴 Disconnected | ${summary.disconnected} |\n`;
-      md += `| ⚪ Never Connected | ${summary.never_connected} |\n`;
-      md += `| 🟡 Pending | ${summary.pending} |\n`;
+      md += `| Active | ${summary.active} |\n`;
+      md += `| Disconnected | ${summary.disconnected} |\n`;
+      md += `| Never Connected | ${summary.never_connected} |\n`;
+      md += `| Pending | ${summary.pending} |\n`;
       md += `| **Total** | **${summary.total}** |\n\n`;
       if (agents.length > 0) {
         md += `| ID | Name | OS | Version | Status |\n|----|------|----|---------|--------|\n`;
         agents.forEach((a: any) => {
-          const s = a.status === 'active' ? '🟢' : '🔴';
-          md += `| ${a.id} | ${a.name} | ${a.os_name || 'N/A'} | ${a.version || 'N/A'} | ${s} ${a.status} |\n`;
+          md += `| \`${a.id}\` | ${a.name} | ${a.os_name || 'N/A'} | ${a.version || 'N/A'} | ${a.status} |\n`;
         });
       }
-      if (data.elapsed_ms) md += `\n*Query took ${data.elapsed_ms}ms*\n`;
+      if (data.elapsed_ms) md += `\n*Query: ${data.elapsed_ms}ms*\n`;
       return md;
     }
 
-    // Array of alerts
+    // Alerts
     if (Array.isArray(data) && data.length > 0 && data[0]?.connector_id && data[0]?.severity) {
-      let md = `### ⚡ Alerts (${data.length})\n\n`;
+      let md = `### Alerts (${data.length})\n\n`;
       const bySev: Record<string, number> = {};
       data.forEach((a: any) => { bySev[a.severity] = (bySev[a.severity] || 0) + 1; });
       md += `| Severity | Count |\n|----------|-------|\n`;
-      Object.entries(bySev).forEach(([s, c]) => {
-        const e = s === 'critical' ? '🔴' : s === 'high' ? '🟠' : s === 'medium' ? '🟡' : '🔵';
-        md += `| ${e} ${s} | ${c} |\n`;
-      });
+      Object.entries(bySev).forEach(([s, c]) => { md += `| ${s} | ${c} |\n`; });
       md += `\n**Latest ${Math.min(5, data.length)}:**\n\n`;
       data.slice(0, 5).forEach((a: any, i: number) => {
-        const e = a.severity === 'critical' ? '🔴' : a.severity === 'high' ? '🟠' : a.severity === 'medium' ? '🟡' : '🔵';
         const desc = a.raw_payload?.rule?.description || a.raw_payload?.full_log?.slice(0, 80) || '';
-        md += `${i + 1}. ${e} **${a.severity}** — ${a.source} via ${a.connector_id}\n`;
+        md += `${i + 1}. **${a.severity}** -- ${a.source} via ${a.connector_id}\n`;
         if (desc) md += `   > ${desc}\n`;
         md += `   *${new Date(a.timestamp).toLocaleString()}*\n\n`;
       });
       return md;
     }
 
-    // Array of action templates
+    // Action templates
     if (Array.isArray(data) && data.length > 0 && data[0]?.params_schema && data[0]?.category) {
-      let md = `### 🛡️ Response Actions (${data.length})\n\n`;
+      let md = `### Response Actions (${data.length})\n\n`;
       md += `| Action | Category | Risk | Provider |\n|--------|----------|------|----------|\n`;
-      data.forEach((t: any) => {
-        const r = t.risk_level === 'high' ? '🔴' : t.risk_level === 'medium' ? '🟡' : '🟢';
-        md += `| ${t.display_name} | ${t.category} | ${r} ${t.risk_level} | ${t.provider} |\n`;
-      });
+      data.forEach((t: any) => { md += `| ${t.display_name} | ${t.category} | ${t.risk_level} | ${t.provider} |\n`; });
       return md;
     }
 
-    // Array of cases
+    // Cases
     if (Array.isArray(data) && data.length > 0 && data[0]?.title !== undefined && data[0]?.status !== undefined) {
-      let md = `### 📁 Cases (${data.length})\n\n`;
+      let md = `### Cases (${data.length})\n\n`;
       md += `| Title | Status | Created |\n|-------|--------|----------|\n`;
-      data.forEach((c: any) => {
-        const s = c.status === 'Open' ? '🟡' : c.status === 'Resolved' ? '🟢' : '⚪';
-        md += `| ${c.title} | ${s} ${c.status} | ${new Date(c.created_at).toLocaleDateString()} |\n`;
-      });
+      data.forEach((c: any) => { md += `| ${c.title} | ${c.status} | ${new Date(c.created_at).toLocaleDateString()} |\n`; });
       return md;
     }
 
-    // Array of detection rules
+    // Detection rules
     if (Array.isArray(data) && data.length > 0 && data[0]?.query_or_vql !== undefined) {
-      let md = `### 🎯 Detection Rules (${data.length})\n\n`;
-      md += `| Rule | Severity | Category | Connector |\n|------|----------|----------|------------|\n`;
-      data.forEach((r: any) => {
-        const e = r.severity === 'critical' ? '🔴' : r.severity === 'high' ? '🟠' : r.severity === 'medium' ? '🟡' : '🔵';
-        md += `| ${r.name} | ${e} ${r.severity} | ${r.category} | ${r.connector_id} |\n`;
-      });
+      let md = `### Detection Rules (${data.length})\n\n`;
+      md += `| Rule | Severity | Category |\n|------|----------|----------|\n`;
+      data.forEach((r: any) => { md += `| ${r.name} | ${r.severity} | ${r.category} |\n`; });
       return md;
     }
 
-    // Health response
+    // Health
     if (data?.status && data?.connectors) {
-      let md = `### 🏥 System Health — ${data.status === 'ok' ? '🟢 Healthy' : '🔴 Unhealthy'}\n\n`;
+      let md = `### System Health -- ${data.status}\n\n`;
       if (data.connectors) {
         md += `| Connector | Status |\n|-----------|--------|\n`;
-        data.connectors.forEach((c: any) => {
-          const e = c.status === 'healthy' ? '🟢' : c.status === 'degraded' ? '🟡' : '🔴';
-          md += `| ${c.id || c.name} | ${e} ${c.status} |\n`;
-        });
-      }
-      if (data.metrics) {
-        md += `\n**Metrics:**\n`;
-        md += `- Alerts (1h): ${data.metrics.alerts_last_hour ?? 'N/A'}\n`;
-        md += `- Alerts (24h): ${data.metrics.alerts_last_24h ?? 'N/A'}\n`;
+        data.connectors.forEach((c: any) => { md += `| ${c.id || c.name} | ${c.status} |\n`; });
       }
       return md;
     }
 
-    // MITRE matrix
+    // MITRE
     if (data?.columns && data?.total_techniques !== undefined) {
-      let md = `### 🗺️ MITRE ATT&CK Matrix\n\n**${data.total_techniques}** techniques · **${data.total_active_detections}** active detections\n\n`;
+      let md = `### MITRE ATT&CK Matrix\n\n**${data.total_techniques}** techniques | **${data.total_active_detections}** detections\n\n`;
       data.columns.forEach((col: any) => {
         if (col.techniques?.length > 0) {
           md += `**${col.tactic.name}**\n`;
-          col.techniques.forEach((t: any) => {
-            md += `- ${t.id} **${t.name}** — ${t.detection_count} detections\n`;
-          });
+          col.techniques.forEach((t: any) => { md += `- \`${t.id}\` ${t.name} -- ${t.detection_count} detections\n`; });
           md += `\n`;
         }
       });
@@ -166,12 +129,9 @@ function formatToolOutput(raw: string): string {
 
     // Agents array
     if (Array.isArray(data) && data.length > 0 && data[0]?.status !== undefined && data[0]?.os_name !== undefined) {
-      let md = `### 🖥️ Agents (${data.length})\n\n`;
+      let md = `### Agents (${data.length})\n\n`;
       md += `| ID | Name | OS | Status |\n|----|------|----|--------|\n`;
-      data.forEach((a: any) => {
-        const e = a.status === 'active' ? '🟢' : '🔴';
-        md += `| ${a.id} | ${a.name} | ${a.os_name || 'N/A'} | ${e} ${a.status} |\n`;
-      });
+      data.forEach((a: any) => { md += `| \`${a.id}\` | ${a.name} | ${a.os_name || 'N/A'} | ${a.status} |\n`; });
       return md;
     }
 
@@ -197,26 +157,29 @@ function formatToolOutput(raw: string): string {
 function ToolOutputBlock({ raw }: { raw: string }) {
   const [expanded, setExpanded] = useState(false);
   const formatted = formatToolOutput(raw);
-  const lineCount = raw.split('\n').length;
+  const lineCount = raw.split('\\n').length;
   const shouldCollapse = lineCount > 15;
 
   return (
-    <div className="border border-slate-700 rounded-lg overflow-hidden bg-slate-950/50">
+    <div style={{ border: '1px solid #333340', borderRadius: '2px', overflow: 'hidden', background: '#121212' }}>
       <button
         onClick={() => shouldCollapse && setExpanded(!expanded)}
-        className={`w-full flex items-center justify-between px-3 py-2 text-xs text-slate-400 hover:bg-slate-800/50 transition-colors ${shouldCollapse ? 'cursor-pointer' : 'cursor-default'}`}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0.375rem 0.625rem', fontSize: '0.7rem', color: '#555560',
+          background: 'transparent', border: 'none', cursor: shouldCollapse ? 'pointer' : 'default',
+          fontFamily: 'var(--font-mono)',
+        }}
       >
-        <span className="flex items-center gap-2">
-          <Wrench className="w-3.5 h-3.5 text-indigo-400" />
-          Tool Output
-          {!expanded && shouldCollapse && <span className="text-slate-600">({lineCount} lines)</span>}
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+          <Wrench size={11} style={{ color: '#6B7B99' }} />
+          TOOL OUTPUT
+          {!expanded && shouldCollapse && <span style={{ color: '#444' }}>({lineCount} lines)</span>}
         </span>
-        {shouldCollapse && (
-          <span className="text-slate-500 text-[11px]">{expanded ? '▲ Collapse' : '▼ Expand'}</span>
-        )}
+        {shouldCollapse && <span>{expanded ? '[COLLAPSE]' : '[EXPAND]'}</span>}
       </button>
       {(expanded || !shouldCollapse) && (
-        <div className="px-3 pb-3 text-sm prose prose-invert prose-sm max-w-none prose-headings:text-white prose-p:text-slate-300 prose-strong:text-white prose-table:border-collapse prose-th:border prose-th:border-slate-700 prose-th:px-3 prose-th:py-1.5 prose-th:text-left prose-th:text-slate-400 prose-td:border prose-td:border-slate-700 prose-td:px-3 prose-td:py-1.5 prose-td:text-slate-300 prose-li:text-slate-300">
+        <div style={{ padding: '0.5rem 0.75rem', borderTop: '1px solid #333340' }} className="prose prose-invert prose-sm max-w-none">
           <Markdown>{formatted}</Markdown>
         </div>
       )}
@@ -229,7 +192,6 @@ export default function AiDashboardPage() {
   const defaultApiKey = import.meta.env.VITE_AI_API_KEY || 'dummy-key';
   const defaultModel = import.meta.env.VITE_AI_MODEL || 'gpt-4o';
 
-  // Config State
   const [endpoint, setEndpoint] = useState(readStored('ai_endpoint', defaultEndpoint));
   const [apiKey, setApiKey] = useState(readStored('ai_api_key', defaultApiKey));
   const [model, setModel] = useState(readStored('ai_model', defaultModel));
@@ -237,17 +199,15 @@ export default function AiDashboardPage() {
   const [showSettings, setShowSettings] = useState(false);
   const [mcpStatus, setMcpStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
 
-  // Security Posture Summary State
   const [posture, setPosture] = useState<SecurityPostureSummary | null>(null);
   const [loadingPosture, setLoadingPosture] = useState(true);
 
-  // Autonomous Triage State
   const [triageTarget, setTriageTarget] = useState('');
   const [triageReport, setTriageReport] = useState<TriageReport | null>(null);
   const [triaging, setTriaging] = useState(false);
   const [dispatchTemplate, setDispatchTemplate] = useState<string | null>(null);
+  const [triageOpen, setTriageOpen] = useState(true);
 
-  // Chat State
   const [messages, setMessages] = useState<Array<{ role: string; content: string; toolCalls?: any[] }>>([]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -255,13 +215,11 @@ export default function AiDashboardPage() {
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Load Posture Summary
     fetchSecurityPostureSummary()
       .then(setPosture)
       .catch(console.error)
       .finally(() => setLoadingPosture(false));
 
-    // Connect to MCP REST tools
     const initMcp = async () => {
       try {
         const resp = await fetch(`${MCP_BASE}/rest/tools`);
@@ -269,11 +227,7 @@ export default function AiDashboardPage() {
         const data = await resp.json();
         mcpToolsRef.current = (data.tools || []).map((t: any) => ({
           type: 'function',
-          function: {
-            name: t.name,
-            description: t.description,
-            parameters: t.inputSchema,
-          },
+          function: { name: t.name, description: t.description, parameters: t.inputSchema },
         }));
         setMcpStatus('connected');
       } catch (err) {
@@ -284,9 +238,7 @@ export default function AiDashboardPage() {
     initMcp();
   }, []);
 
-  useEffect(() => {
-    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isProcessing]);
+  useEffect(() => { chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isProcessing]);
 
   const handleSaveSettings = () => {
     localStorage.setItem('ai_endpoint', endpoint);
@@ -301,21 +253,16 @@ export default function AiDashboardPage() {
       if (!baseUrl) return;
       const modelsUrl = buildModelsUrl(baseUrl, isProxy);
       const response = await fetch(modelsUrl, {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
-      if (data && data.data && Array.isArray(data.data)) {
+      if (data?.data && Array.isArray(data.data)) {
         setAvailableModels(data.data.map((m: any) => m.id));
-        if (data.data.length > 0 && !model) {
-          setModel(data.data[0].id);
-        }
+        if (data.data.length > 0 && !model) setModel(data.data[0].id);
       }
     } catch (err: any) {
-      alert(`Failed to fetch models: ${err.message}`);
+      alert(`Model fetch failed: ${err.message}`);
     }
   };
 
@@ -327,7 +274,7 @@ export default function AiDashboardPage() {
     });
     const data = await resp.json();
     if (data.isError) return `Error: ${data.content?.[0]?.text || 'Unknown error'}`;
-    return data.content?.filter((c: any) => c.type === 'text').map((c: any) => c.text).join('\n') || '';
+    return data.content?.filter((c: any) => c.type === 'text').map((c: any) => c.text).join('\\n') || '';
   };
 
   const handleRunTriage = async () => {
@@ -335,10 +282,7 @@ export default function AiDashboardPage() {
     setTriaging(true);
     try {
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(triageTarget.trim());
-      const payload = isUuid
-        ? { alert_id: triageTarget.trim() }
-        : { ioc: triageTarget.trim() };
-
+      const payload = isUuid ? { alert_id: triageTarget.trim() } : { ioc: triageTarget.trim() };
       const report = await runAiTriage(payload);
       setTriageReport(report);
     } catch (err: any) {
@@ -357,12 +301,7 @@ export default function AiDashboardPage() {
 
     try {
       const { baseUrl } = resolveEndpoint(endpoint);
-      const openai = new OpenAI({
-        baseURL: baseUrl,
-        apiKey: apiKey,
-        dangerouslyAllowBrowser: true,
-      });
-
+      const openai = new OpenAI({ baseURL: baseUrl, apiKey, dangerouslyAllowBrowser: true });
       const tools = mcpToolsRef.current;
       let currentMessages: any[] = [...messages, userMessage];
 
@@ -372,24 +311,14 @@ export default function AiDashboardPage() {
           messages: currentMessages,
           tools: tools.length > 0 ? tools : undefined,
         });
-
         const msg = response.choices[0].message;
         currentMessages.push(msg);
         setMessages([...currentMessages]);
-
-        if (!msg.tool_calls || msg.tool_calls.length === 0) {
-          break;
-        }
-
+        if (!msg.tool_calls || msg.tool_calls.length === 0) break;
         for (const tc of msg.tool_calls as any[]) {
           const args = JSON.parse(tc.function.arguments || '{}');
           const resultText = await callMcpTool(tc.function.name, args);
-          currentMessages.push({
-            role: 'tool',
-            tool_call_id: tc.id,
-            name: tc.function.name,
-            content: resultText,
-          });
+          currentMessages.push({ role: 'tool', tool_call_id: tc.id, name: tc.function.name, content: resultText });
         }
       }
     } catch (err: any) {
@@ -402,269 +331,221 @@ export default function AiDashboardPage() {
 
   const getVerdictBadge = (verdict: string) => {
     switch (verdict.toUpperCase()) {
-      case 'MALICIOUS':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30">MALICIOUS</span>;
-      case 'SUSPICIOUS':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">SUSPICIOUS</span>;
-      case 'INFORMATIONAL':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">INFORMATIONAL</span>;
-      default:
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">BENIGN</span>;
+      case 'MALICIOUS': return <span className="badge badge-critical">MALICIOUS</span>;
+      case 'SUSPICIOUS': return <span className="badge badge-high">SUSPICIOUS</span>;
+      case 'INFORMATIONAL': return <span className="badge badge-info">INFO</span>;
+      default: return <span className="badge badge-success">BENIGN</span>;
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-500/10 border border-indigo-500/30 rounded-lg text-indigo-400">
-              <Bot className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">Shieldgrid AI Analyst</h1>
-              <p className="text-sm text-slate-400 mt-0.5">
-                Autonomous threat triage, MITRE correlation, and active response orchestration
-              </p>
-            </div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 28px)', overflow: 'hidden' }}>
+      {/* ── Top Bar: Posture + Controls ───────────────────────────────────── */}
+      <div style={{ flexShrink: 0, borderBottom: '1px solid #333340' }}>
+        {/* Header Row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Terminal size={16} style={{ color: '#6B7B99' }} />
+            <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#E0E0E0', fontFamily: 'var(--font-mono)' }}>AI ANALYST</span>
+            <span style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>// AUTONOMOUS TRIAGE | MITRE | ACTIVE RESPONSE</span>
           </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                mcpStatus === 'connected' ? 'bg-emerald-400' : mcpStatus === 'error' ? 'bg-red-400' : 'bg-amber-400'
-              }`}
-            />
-            <span className="text-slate-300 font-medium">
-              MCP: {mcpStatus === 'connected' ? `Connected (${mcpToolsRef.current.length} tools)` : 'Connecting...'}
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+            {/* Triage Toggle */}
+            <button
+              onClick={() => setTriageOpen(!triageOpen)}
+              className="btn"
+              style={{ fontFamily: 'var(--font-mono)', borderColor: triageOpen ? '#E5A93B' : undefined, color: triageOpen ? '#E5A93B' : undefined }}
+            >
+              <Search size={12} /> TRIAGE {triageOpen ? 'ON' : 'OFF'}
+            </button>
+            {/* MCP Status */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', background: '#1E1E24', border: '1px solid #333340', borderRadius: '2px', fontSize: '0.6rem', fontFamily: 'var(--font-mono)' }}>
+              <span className={`status-dot ${mcpStatus === 'connected' ? 'ok' : mcpStatus === 'error' ? 'error' : 'warn'}`} />
+              <span style={{ color: '#8A8A96' }}>{mcpStatus === 'connected' ? `${mcpToolsRef.current.length} TOOLS` : 'OFFLINE'}</span>
+            </div>
+            {/* Posture (compact inline) */}
+            {posture && !loadingPosture && (
+              <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.6rem', fontFamily: 'var(--font-mono)', color: '#555560' }}>
+                <span><span style={{ color: '#E5A93B' }}>{posture.open_alerts_count}</span> ALERTS</span>
+                <span><span style={{ color: '#D32F2F' }}>{posture.critical_alerts_count}</span> CRIT</span>
+                <span><span style={{ color: '#8A8A96' }}>{posture.active_cases_count}</span> CASES</span>
+                <span><span style={{ color: '#4CAF50' }}>{posture.executed_actions_count}</span> ACTIONS</span>
+              </div>
+            )}
+            <button onClick={() => setShowSettings(!showSettings)} className="btn" style={{ fontFamily: 'var(--font-mono)' }}>
+              <Settings size={12} />
+            </button>
           </div>
-
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 border border-slate-700"
-          >
-            <Settings className="w-4 h-4 text-indigo-400" />
-            AI Settings
-          </button>
         </div>
       </div>
 
-      {/* Security Posture Banner */}
-      {posture && !loadingPosture && (
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
-            <div className="flex items-center gap-2 text-xs text-slate-400 font-medium mb-1">
-              <ShieldAlert className="w-4 h-4 text-amber-400" /> Open Alerts
-            </div>
-            <div className="text-2xl font-bold text-white">{posture.open_alerts_count}</div>
-          </div>
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
-            <div className="flex items-center gap-2 text-xs text-slate-400 font-medium mb-1">
-              <Activity className="w-4 h-4 text-red-400" /> Critical Incidents
-            </div>
-            <div className="text-2xl font-bold text-red-400">{posture.critical_alerts_count}</div>
-          </div>
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
-            <div className="flex items-center gap-2 text-xs text-slate-400 font-medium mb-1">
-              <Layers className="w-4 h-4 text-indigo-400" /> Active Cases
-            </div>
-            <div className="text-2xl font-bold text-white">{posture.active_cases_count}</div>
-          </div>
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
-            <div className="flex items-center gap-2 text-xs text-slate-400 font-medium mb-1">
-              <Zap className="w-4 h-4 text-emerald-400" /> Actions Dispatched
-            </div>
-            <div className="text-2xl font-bold text-emerald-400">{posture.executed_actions_count}</div>
-          </div>
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
-            <div className="flex items-center gap-2 text-xs text-slate-400 font-medium mb-1">
-              <ShieldCheck className="w-4 h-4 text-blue-400" /> Threat Intel Hits
-            </div>
-            <div className="text-2xl font-bold text-blue-400">{posture.high_risk_iocs_cached}</div>
-          </div>
-        </div>
-      )}
-
-      {/* Main Grid: Left Triage & Actions, Right AI Copilot Chat */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Autonomous Triage */}
-        <div className="lg:col-span-5 space-y-6">
-          {/* Quick Triage Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl space-y-4">
-            <div className="flex items-center gap-2 text-white font-bold text-base">
-              <Sparkles className="w-5 h-5 text-indigo-400" />
-              Autonomous Incident Triage
-            </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Input an Alert UUID, IP, domain, hash, or CVE to calculate composite risk scores and generate response playbooks.
-            </p>
-
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="e.g. 192.168.1.1 or alert UUID..."
-                  value={triageTarget}
-                  onChange={(e) => setTriageTarget(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleRunTriage()}
-                  className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
-                />
-              </div>
-              <button
-                onClick={handleRunTriage}
-                disabled={triaging || !triageTarget.trim()}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
-              >
-                <Play className={`w-4 h-4 ${triaging ? 'animate-spin' : ''}`} />
-                Triage
-              </button>
+      {/* ── Main Area: Triage Sidebar + Full-Screen Chat ──────────────────── */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        {/* Triage Sidebar (collapsible) */}
+        {triageOpen && (
+          <div style={{ width: '320px', minWidth: '320px', borderRight: '1px solid #333340', background: '#1A1A22', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* Sidebar Header */}
+            <div style={{ padding: '0.5rem 0.625rem', borderBottom: '1px solid #333340', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: '#555560', textTransform: 'uppercase' }}>AUTONOMOUS TRIAGE</span>
+              <button onClick={() => setTriageOpen(false)} style={{ background: 'none', border: 'none', color: '#555560', cursor: 'pointer', fontSize: '0.6rem', fontFamily: 'var(--font-mono)' }}>X</button>
             </div>
 
-            {/* Triage Report Results */}
-            {triageReport && (
-              <div className="mt-4 pt-4 border-t border-slate-800 space-y-4 animate-in fade-in">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-slate-400">Verdict:</span>
-                    {getVerdictBadge(triageReport.verdict)}
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs text-slate-400">Risk Score: </span>
-                    <span className="text-sm font-bold font-mono text-white">
-                      {triageReport.risk_score}/100
-                    </span>
-                  </div>
-                </div>
-
-                {/* Score bar */}
-                <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
-                  <div
-                    className={`h-full transition-all duration-500 ${
-                      triageReport.risk_score >= 80
-                        ? 'bg-red-500'
-                        : triageReport.risk_score >= 50
-                        ? 'bg-amber-500'
-                        : 'bg-emerald-500'
-                    }`}
-                    style={{ width: `${triageReport.risk_score}%` }}
+            {/* Triage Input */}
+            <div style={{ padding: '0.5rem 0.625rem', borderBottom: '1px solid #333340' }}>
+              <p style={{ fontSize: '0.6rem', color: '#444', fontFamily: 'var(--font-mono)', margin: '0 0 0.375rem' }}>
+                UUID, IP, DOMAIN, HASH, CVE
+              </p>
+              <div style={{ display: 'flex', gap: '0.25rem' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <Search size={11} style={{ position: 'absolute', left: '0.375rem', top: '50%', transform: 'translateY(-50%)', color: '#444' }} />
+                  <input
+                    type="text"
+                    placeholder="192.168.1.1"
+                    value={triageTarget}
+                    onChange={(e) => setTriageTarget(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleRunTriage()}
+                    className="input"
+                    style={{ width: '100%', paddingLeft: '1.5rem', fontSize: '0.75rem' }}
                   />
                 </div>
-
-                <p className="text-xs text-slate-300 leading-relaxed bg-slate-950 p-3 rounded-lg border border-slate-800">
-                  {triageReport.summary}
-                </p>
-
-                {triageReport.mitre_techniques.length > 0 && (
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-400 uppercase">
-                      Detected MITRE Techniques
-                    </label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {triageReport.mitre_techniques.map((tech) => (
-                        <span
-                          key={tech}
-                          className="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-xs font-mono text-indigo-300"
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Recommended Response Actions */}
-                {triageReport.recommended_actions.length > 0 && (
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-semibold text-amber-400 uppercase flex items-center gap-1">
-                      <Zap className="w-3.5 h-3.5" /> Recommended Containment Actions
-                    </label>
-                    <div className="space-y-2">
-                      {triageReport.recommended_actions.map((act, idx) => (
-                        <div
-                          key={idx}
-                          className="p-3 bg-slate-950 border border-amber-500/30 rounded-lg flex items-center justify-between gap-3"
-                        >
-                          <div>
-                            <div className="text-xs font-bold text-white">{act.display_name}</div>
-                            <div className="text-[11px] text-slate-400">{act.description}</div>
-                          </div>
-                          <button
-                            onClick={() => setDispatchTemplate(act.template_name)}
-                            className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-semibold rounded-lg transition-colors border border-amber-500/30 whitespace-nowrap"
-                          >
-                            Dispatch
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Column: AI Copilot Chat */}
-        <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-xl shadow-xl flex flex-col h-[650px] overflow-hidden">
-          {/* Chat Header */}
-          <div className="p-4 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <Bot className="w-5 h-5 text-indigo-400" />
-              <div>
-                <h3 className="text-sm font-bold text-white">Shieldgrid Interactive SOC Assistant</h3>
-                <span className="text-[11px] text-slate-400 font-mono">Model: {model}</span>
+                <button onClick={handleRunTriage} disabled={triaging || !triageTarget.trim()} className="btn btn-primary" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', padding: '0.375rem 0.5rem' }}>
+                  <Play size={11} className={triaging ? 'animate-spin' : ''} />
+                </button>
               </div>
             </div>
+
+            {/* Triage Results (scrollable) */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0.5rem 0.625rem' }}>
+              {!triageReport && !triaging && (
+                <div style={{ textAlign: 'center', padding: '2rem 0.5rem' }}>
+                  <Search size={20} style={{ color: '#333340', marginBottom: '0.375rem' }} />
+                  <p style={{ fontSize: '0.65rem', color: '#444', fontFamily: 'var(--font-mono)' }}>AWAITING INPUT</p>
+                </div>
+              )}
+
+              {triaging && (
+                <div style={{ textAlign: 'center', padding: '2rem 0.5rem' }}>
+                  <Activity size={16} className="animate-pulse" style={{ color: '#6B7B99', marginBottom: '0.375rem' }} />
+                  <p style={{ fontSize: '0.65rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>ANALYZING...</p>
+                </div>
+              )}
+
+              {triageReport && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {/* Verdict + Score */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                      <span style={{ fontSize: '0.6rem', fontFamily: 'var(--font-mono)', color: '#444' }}>VERDICT</span>
+                      {getVerdictBadge(triageReport.verdict)}
+                    </div>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#E0E0E0' }}>
+                      {triageReport.risk_score}<span style={{ fontSize: '0.6rem', color: '#555560' }}>/100</span>
+                    </span>
+                  </div>
+
+                  {/* Score bar */}
+                  <div style={{ width: '100%', height: '3px', background: '#121212', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%', borderRadius: '2px',
+                      background: triageReport.risk_score >= 80 ? '#D32F2F' : triageReport.risk_score >= 50 ? '#E5A93B' : '#4CAF50',
+                      width: `${triageReport.risk_score}%`, transition: 'width 500ms',
+                    }} />
+                  </div>
+
+                  {/* Summary */}
+                  <div style={{ padding: '0.375rem 0.5rem', background: '#121212', border: '1px solid #333340', borderRadius: '2px' }}>
+                    <p style={{ fontSize: '0.65rem', color: '#8A8A96', fontFamily: 'var(--font-mono)', margin: 0, lineHeight: 1.5 }}>{triageReport.summary}</p>
+                  </div>
+
+                  {/* MITRE */}
+                  {triageReport.mitre_techniques.length > 0 && (
+                    <div>
+                      <label style={{ fontSize: '0.55rem', fontFamily: 'var(--font-mono)', color: '#444', display: 'block', marginBottom: '0.25rem' }}>MITRE</label>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                        {triageReport.mitre_techniques.map((tech) => (
+                          <span key={tech} style={{ padding: '0.125rem 0.375rem', background: '#121212', border: '1px solid #333340', borderRadius: '2px', fontSize: '0.6rem', fontFamily: 'var(--font-mono)', color: '#6B7B99' }}>
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  {triageReport.recommended_actions.length > 0 && (
+                    <div>
+                      <label style={{ fontSize: '0.55rem', fontFamily: 'var(--font-mono)', color: '#E5A93B', display: 'block', marginBottom: '0.25rem' }}>ACTIONS</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        {triageReport.recommended_actions.map((act, idx) => (
+                          <div key={idx} style={{ padding: '0.375rem 0.5rem', background: '#121212', border: '1px solid #333340', borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div>
+                              <div style={{ fontSize: '0.7rem', color: '#E0E0E0' }}>{act.display_name}</div>
+                              <div style={{ fontSize: '0.6rem', color: '#444', fontFamily: 'var(--font-mono)' }}>{act.description}</div>
+                            </div>
+                            <button onClick={() => setDispatchTemplate(act.template_name)} style={{ background: 'none', border: '1px solid #E5A93B', color: '#E5A93B', padding: '0.125rem 0.375rem', borderRadius: '2px', cursor: 'pointer', fontSize: '0.6rem', fontFamily: 'var(--font-mono)' }}>
+                              DISPATCH
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Full-Screen AI Chat ─────────────────────────────────────────── */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#121212' }}>
+          {/* Chat Header */}
+          <div style={{ flexShrink: 0, padding: '0.5rem 0.75rem', borderBottom: '1px solid #333340', background: '#1A1A22', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+              <Terminal size={14} style={{ color: '#6B7B99' }} />
+              <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: '#8A8A96' }}>SOC ASSISTANT</span>
+              <span style={{ fontSize: '0.55rem', fontFamily: 'var(--font-mono)', color: '#444' }}>// MODEL: {model}</span>
+            </div>
+            <span style={{ fontSize: '0.55rem', fontFamily: 'var(--font-mono)', color: '#444' }}>{messages.length} MESSAGES</span>
           </div>
 
           {/* Messages Stream */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-4">
+          <div style={{ flex: 1, padding: '1rem 1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {messages.length === 0 && (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500">
-                <Bot className="w-12 h-12 text-slate-600 mb-3" />
-                <h4 className="text-sm font-semibold text-slate-300">Ready to investigate</h4>
-                <p className="text-xs text-slate-400 max-w-sm mt-1">
-                  Ask questions about active alerts, triage investigations, lookup threat intel, or trigger automated response actions.
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                <Terminal size={48} style={{ color: '#222', marginBottom: '0.75rem' }} />
+                <h4 style={{ fontSize: '1rem', color: '#555560', fontWeight: 600, margin: '0 0 0.375rem', fontFamily: 'var(--font-mono)' }}>SYSTEM READY</h4>
+                <p style={{ fontSize: '0.75rem', color: '#444', fontFamily: 'var(--font-mono)', maxWidth: '400px', lineHeight: 1.6 }}>
+                  Query alerts, triage threats, lookup intel, or trigger response actions.
                 </p>
+                <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '0.375rem', justifyContent: 'center' }}>
+                  {['Show critical alerts', 'List Wazuh agents', 'Check system health', 'Triage this environment'].map((q) => (
+                    <button key={q} onClick={() => { setInput(q); }} style={{ padding: '0.25rem 0.625rem', background: '#1E1E24', border: '1px solid #333340', borderRadius: '2px', color: '#6B7B99', fontSize: '0.7rem', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>
+                      {q}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
             {messages.map((msg, idx) => {
-              if (msg.role === 'tool') {
-                return (
-                  <ToolOutputBlock key={idx} raw={msg.content} />
-                );
-              }
-
+              if (msg.role === 'tool') return <ToolOutputBlock key={idx} raw={msg.content} />;
               const isUser = msg.role === 'user';
               return (
-                <div
-                  key={idx}
-                  className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[85%] rounded-xl p-3.5 text-sm ${
-                      isUser
-                        ? 'bg-indigo-600 text-white rounded-br-none'
-                        : 'bg-slate-950 border border-slate-800 text-slate-200 rounded-bl-none'
-                    }`}
-                  >
-                    <div className="text-[10px] font-semibold tracking-wider uppercase opacity-60 mb-1">
-                      {isUser ? 'SOC Analyst' : 'Shieldgrid AI'}
+                <div key={idx} style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
+                  <div style={{
+                    maxWidth: '75%', padding: '0.625rem 0.875rem', borderRadius: '2px',
+                    background: isUser ? '#2A2A32' : '#1A1A22',
+                    border: '1px solid #333340', fontSize: '0.8125rem', lineHeight: 1.6,
+                  }}>
+                    <div style={{ fontSize: '0.55rem', fontFamily: 'var(--font-mono)', color: '#444', marginBottom: '0.375rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      {isUser ? 'SOC_ANALYST' : 'SG_AI'}
                     </div>
                     {!isUser ? (
-                      <div className="prose prose-invert prose-sm max-w-none prose-headings:text-white prose-p:text-slate-300 prose-strong:text-white prose-table:border-collapse prose-th:border prose-th:border-slate-700 prose-th:px-3 prose-th:py-1.5 prose-th:text-left prose-th:text-slate-400 prose-td:border prose-td:border-slate-700 prose-td:px-3 prose-td:py-1.5 prose-td:text-slate-300 prose-li:text-slate-300 prose-code:text-indigo-400 prose-code:bg-slate-950 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-a:text-indigo-400 prose-a:no-underline hover:prose-a:underline leading-relaxed">
+                      <div className="prose prose-invert prose-sm max-w-none">
                         <Markdown>{msg.content}</Markdown>
                       </div>
                     ) : (
-                      <div className="whitespace-pre-wrap leading-relaxed">
-                        {msg.content}
-                      </div>
+                      <div style={{ color: '#E0E0E0', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
                     )}
                   </div>
                 </div>
@@ -672,30 +553,27 @@ export default function AiDashboardPage() {
             })}
 
             {isProcessing && (
-              <div className="flex items-center gap-2 text-xs text-slate-400 p-2">
-                <Sparkles className="w-4 h-4 text-indigo-400 animate-spin" />
-                <span>AI is analyzing telemetry and querying MCP tools...</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: '#555560' }}>
+                <Activity size={12} className="animate-pulse" style={{ color: '#6B7B99' }} />
+                PROCESSING // QUERYING MCP TOOLS...
               </div>
             )}
             <div ref={chatBottomRef} />
           </div>
 
-          {/* Chat Input */}
-          <div className="p-3 border-t border-slate-800 bg-slate-950/80 flex gap-2">
+          {/* Chat Input (full width) */}
+          <div style={{ flexShrink: 0, padding: '0.625rem 1rem', borderTop: '1px solid #333340', display: 'flex', gap: '0.5rem', background: '#1A1A22' }}>
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Ask Shieldgrid (e.g., 'What are the most critical alerts right now?')..."
-              className="flex-1 px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              placeholder="Enter command..."
+              className="input"
+              style={{ flex: 1, fontSize: '0.8125rem' }}
             />
-            <button
-              onClick={handleSendMessage}
-              disabled={isProcessing || !input.trim()}
-              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg transition-colors flex items-center justify-center font-semibold"
-            >
-              <Send className="w-4 h-4" />
+            <button onClick={handleSendMessage} disabled={isProcessing || !input.trim()} className="btn btn-primary">
+              <Send size={14} />
             </button>
           </div>
         </div>
@@ -703,75 +581,37 @@ export default function AiDashboardPage() {
 
       {/* AI Settings Modal */}
       {showSettings && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md shadow-2xl p-6 space-y-4">
-            <h3 className="text-lg font-bold text-white">AI Endpoint Settings</h3>
-
-            <div className="space-y-3">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div className="panel" style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div className="panel-header">
+              <span className="panel-title">AI ENDPOINT CONFIGURATION</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div>
-                <label className="text-xs font-semibold text-slate-400">Adapter / API URL</label>
-                <input
-                  type="text"
-                  value={endpoint}
-                  onChange={(e) => setEndpoint(e.target.value)}
-                  className="w-full mt-1 p-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white"
-                />
+                <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>ENDPOINT URL</label>
+                <input type="text" value={endpoint} onChange={(e) => setEndpoint(e.target.value)} className="input" style={{ width: '100%', marginTop: '0.125rem' }} />
               </div>
-
               <div>
-                <label className="text-xs font-semibold text-slate-400">API Key</label>
-                <input
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="w-full mt-1 p-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white"
-                />
+                <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>API KEY</label>
+                <input type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} className="input" style={{ width: '100%', marginTop: '0.125rem' }} />
               </div>
-
               <div>
-                <label className="text-xs font-semibold text-slate-400">Model Name</label>
+                <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>MODEL</label>
                 {availableModels.length > 0 ? (
-                  <select
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                    className="w-full mt-1 p-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white"
-                  >
-                    {availableModels.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    ))}
+                  <select value={model} onChange={(e) => setModel(e.target.value)} className="input" style={{ width: '100%', marginTop: '0.125rem' }}>
+                    {availableModels.map((m) => <option key={m} value={m}>{m}</option>)}
                   </select>
                 ) : (
-                  <input
-                    type="text"
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                    className="w-full mt-1 p-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white"
-                  />
+                  <input type="text" value={model} onChange={(e) => setModel(e.target.value)} className="input" style={{ width: '100%', marginTop: '0.125rem' }} />
                 )}
-                <button
-                  onClick={handleFetchModels}
-                  className="mt-2 text-xs text-indigo-400 hover:underline flex items-center gap-1"
-                >
-                  <ChevronRight className="w-3 h-3" /> Fetch available models
+                <button onClick={handleFetchModels} style={{ marginTop: '0.25rem', background: 'none', border: 'none', color: '#6B7B99', cursor: 'pointer', fontSize: '0.65rem', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <ChevronRight size={10} /> FETCH MODELS
                 </button>
               </div>
             </div>
-
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
-              <button
-                onClick={() => setShowSettings(false)}
-                className="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-medium rounded-lg"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveSettings}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg"
-              >
-                Save
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.375rem', paddingTop: '0.5rem', borderTop: '1px solid #333340' }}>
+              <button onClick={() => setShowSettings(false)} className="btn">CANCEL</button>
+              <button onClick={handleSaveSettings} className="btn btn-primary">SAVE</button>
             </div>
           </div>
         </div>
@@ -792,3 +632,5 @@ export default function AiDashboardPage() {
     </div>
   );
 }
+
+

@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useAuth } from '../lib/auth';
 import { fetchAlerts, updateAlertStatus } from '../lib/api';
-import type { NormalizedAlert, Severity, AlertStatus } from '../lib/types';
+import type { NormalizedAlert, AlertStatus } from '../lib/types';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { ErrorDisplay } from '../components/ErrorDisplay';
 import { EmptyState } from '../components/EmptyState';
+import { RefreshCw, X, Filter } from 'lucide-react';
 
 export default function AlertsPage() {
   const { isAuthenticated } = useAuth();
@@ -12,7 +13,6 @@ export default function AlertsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filters
   const [connectorFilter, setConnectorFilter] = useState<string>('all');
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -32,9 +32,7 @@ export default function AlertsPage() {
     }
   }, [isAuthenticated]);
 
-  useEffect(() => {
-    loadAlerts();
-  }, [loadAlerts]);
+  useEffect(() => { loadAlerts(); }, [loadAlerts]);
 
   const changeStatus = useCallback(async (alert: NormalizedAlert, status: AlertStatus) => {
     try {
@@ -46,12 +44,8 @@ export default function AlertsPage() {
     }
   }, []);
 
-  // Derived filter options
-  const connectors = useMemo(() => {
-    return Array.from(new Set(alerts.map((a) => a.connector_id)));
-  }, [alerts]);
+  const connectors = useMemo(() => Array.from(new Set(alerts.map((a) => a.connector_id))), [alerts]);
 
-  // Client-side filtering
   const filteredAlerts = useMemo(() => {
     return alerts.filter((alert) => {
       if (connectorFilter !== 'all' && alert.connector_id !== connectorFilter) return false;
@@ -61,279 +55,177 @@ export default function AlertsPage() {
     });
   }, [alerts, connectorFilter, severityFilter, statusFilter]);
 
-  const getSeverityBadgeColor = (sev: Severity) => {
-    switch (sev) {
-      case 'critical':
-        return 'var(--color-critical)';
-      case 'high':
-        return 'var(--color-warning)';
-      case 'medium':
-        return '#FBBF24';
-      case 'low':
-        return 'var(--color-text-secondary)';
-      default:
-        return 'var(--color-accent)';
-    }
-  };
-
   return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: 0 }}>Security Alert Queue</h1>
-            <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-              Normalized alert stream from all connected SIEM & endpoint security sensors.
-            </p>
-          </div>
-          <button
-            onClick={loadAlerts}
-            style={{
-              padding: '0.5rem 1rem',
-              background: 'var(--color-bg-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--color-text-primary)',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-            }}
-          >
-            🔄 Refresh Alerts
-          </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#E0E0E0', margin: 0 }}>Security Alert Queue</h1>
+          <p style={{ fontSize: '0.7rem', color: '#555560', fontFamily: 'var(--font-mono)', margin: '0.25rem 0 0' }}>
+            NORMALIZED ALERT STREAM // ALL CONNECTED SENSORS
+          </p>
         </div>
-
-        {error && <ErrorDisplay message={error} onRetry={loadAlerts} />}
-
-        {/* Filter Controls */}
-        <div
-          style={{
-            display: 'flex',
-            gap: '1rem',
-            flexWrap: 'wrap',
-            background: 'var(--color-bg-surface)',
-            padding: '1rem',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--color-border)',
-          }}
-        >
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginBottom: '0.25rem' }}>
-              Connector
-            </label>
-            <select
-              value={connectorFilter}
-              onChange={(e) => setConnectorFilter(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="all">All Connectors</option>
-              {connectors.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginBottom: '0.25rem' }}>
-              Severity
-            </label>
-            <select
-              value={severityFilter}
-              onChange={(e) => setSeverityFilter(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="all">All Severities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-              <option value="info">Info</option>
-            </select>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginBottom: '0.25rem' }}>
-              Status
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="all">All Statuses</option>
-              <option value="open">Open</option>
-              <option value="acknowledged">Acknowledged</option>
-              <option value="closed">Closed</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Content */}
-        {loading ? (
-          <LoadingSkeleton count={5} height="4.5rem" />
-        ) : filteredAlerts.length === 0 ? (
-          <EmptyState
-            title="No Alerts Found"
-            description="There are currently no alerts matching your filter criteria. Relax — or widen your filter settings."
-          />
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: selectedAlert ? '1fr 1fr' : '1fr', gap: '1.5rem' }}>
-            {/* Alert List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {filteredAlerts.map((alert) => {
-                const isSelected = selectedAlert?.id === alert.id;
-                return (
-                  <div
-                    key={alert.id}
-                    onClick={() => setSelectedAlert(alert)}
-                    style={{
-                      padding: '1rem 1.25rem',
-                      borderRadius: 'var(--radius-md)',
-                      background: isSelected ? 'var(--color-bg-elevated)' : 'var(--color-bg-surface)',
-                      border: isSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      transition: 'border 150ms ease',
-                    }}
-                  >
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.375rem' }}>
-                        <span
-                          style={{
-                            padding: '0.15rem 0.5rem',
-                            borderRadius: '4px',
-                            fontSize: '0.7rem',
-                            fontWeight: 700,
-                            textTransform: 'uppercase',
-                            color: '#0B1B33',
-                            background: getSeverityBadgeColor(alert.severity),
-                          }}
-                        >
-                          {alert.severity}
-                        </span>
-                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
-                          {/* UNTRUSTED INPUT: Rendered strictly as text node */}
-                          {alert.source}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
-                        Connector: <strong style={{ color: 'var(--color-text-primary)' }}>{alert.connector_id}</strong> &bull; {new Date(alert.timestamp).toLocaleString()}
-                      </div>
-                    </div>
-
-                    <div style={{ textAlign: 'right' }}>
-                      <span
-                        style={{
-                          fontSize: '0.75rem',
-                          color: 'var(--color-text-secondary)',
-                          textTransform: 'capitalize',
-                        }}
-                      >
-                        {alert.status}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Alert Detail Drawer / Side Panel */}
-            {selectedAlert && (
-              <div
-                style={{
-                  background: 'var(--color-bg-surface)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: '1.5rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '1rem',
-                  position: 'sticky',
-                  top: '1rem',
-                  height: 'fit-content',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <h3>Alert Details</h3>
-                  <button
-                    onClick={() => setSelectedAlert(null)}
-                    style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', fontSize: '1.25rem' }}
-                  >
-                    ×
-                  </button>
-                </div>
-
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>ALERT ID</div>
-                  <code style={{ fontSize: '0.8rem', color: 'var(--color-accent)' }}>{selectedAlert.id}</code>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>SOURCE</div>
-                    {/* SECURITY: Plain text node */}
-                    <div style={{ fontSize: '0.875rem', color: 'var(--color-text-primary)' }}>{selectedAlert.source}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>CONNECTOR</div>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--color-text-primary)' }}>{selectedAlert.connector_id}</div>
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>
-                    STATUS (LIFECYCLE)
-                  </div>
-                  <select
-                    value={selectedAlert.status}
-                    onChange={(e) => changeStatus(selectedAlert, e.target.value as AlertStatus)}
-                    style={{ ...selectStyle, width: '100%' }}
-                  >
-                    <option value="open">Open</option>
-                    <option value="acknowledged">Acknowledged</option>
-                    <option value="closed">Closed</option>
-                  </select>
-                </div>
-
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
-                    RAW PAYLOAD (UNTRUSTED SENSOR INPUT)
-                  </div>
-                  {/* SECURITY REQUIREMENT (Ticket 6): Rendered as plain text pre tag, NEVER dangerouslySetInnerHTML */}
-                  <pre
-                    style={{
-                      background: 'var(--color-bg-base)',
-                      border: '1px solid var(--color-border)',
-                      padding: '1rem',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: '0.75rem',
-                      color: 'var(--color-text-secondary)',
-                      overflowX: 'auto',
-                      maxHeight: '240px',
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-all',
-                    }}
-                  >
-                    {JSON.stringify(selectedAlert.raw_payload, null, 2)}
-                  </pre>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        <button onClick={loadAlerts} className="btn" style={{ fontFamily: 'var(--font-mono)' }}>
+          <RefreshCw size={12} /> REFRESH
+        </button>
       </div>
+
+      {error && <ErrorDisplay message={error} onRetry={loadAlerts} />}
+
+      {/* Filter Controls */}
+      <div className="panel" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', color: '#555560' }}>
+          <Filter size={12} />
+          <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>FILTERS</span>
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)', marginBottom: '0.125rem' }}>CONNECTOR</label>
+          <select value={connectorFilter} onChange={(e) => setConnectorFilter(e.target.value)} className="input" style={{ minWidth: '120px' }}>
+            <option value="all">ALL</option>
+            {connectors.map((c) => <option key={c} value={c}>{c.toUpperCase()}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)', marginBottom: '0.125rem' }}>SEVERITY</label>
+          <select value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)} className="input" style={{ minWidth: '120px' }}>
+            <option value="all">ALL</option>
+            <option value="critical">CRITICAL</option>
+            <option value="high">HIGH</option>
+            <option value="medium">MEDIUM</option>
+            <option value="low">LOW</option>
+            <option value="info">INFO</option>
+          </select>
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)', marginBottom: '0.125rem' }}>STATUS</label>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="input" style={{ minWidth: '120px' }}>
+            <option value="all">ALL</option>
+            <option value="open">OPEN</option>
+            <option value="acknowledged">ACKNOWLEDGED</option>
+            <option value="closed">CLOSED</option>
+          </select>
+        </div>
+        <div style={{ marginLeft: 'auto', fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: '#555560' }}>
+          {filteredAlerts.length} / {alerts.length} RECORDS
+        </div>
+      </div>
+
+      {/* Content */}
+      {loading ? (
+        <LoadingSkeleton count={5} height="3rem" />
+      ) : filteredAlerts.length === 0 ? (
+        <EmptyState
+          title="No Alerts Found"
+          description="No alerts match current filter criteria."
+        />
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: selectedAlert ? '1fr 1fr' : '1fr', gap: '0.75rem' }}>
+          {/* Alert List */}
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>SEV</th>
+                  <th>SOURCE</th>
+                  <th>CONNECTOR</th>
+                  <th>STATUS</th>
+                  <th>TIME</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredAlerts.map((alert) => {
+                  const isSelected = selectedAlert?.id === alert.id;
+                  return (
+                    <tr
+                      key={alert.id}
+                      onClick={() => setSelectedAlert(alert)}
+                      style={{
+                        cursor: 'pointer',
+                        background: isSelected ? 'rgba(107,123,153,0.1)' : undefined,
+                      }}
+                    >
+                      <td><SeverityBadge severity={alert.severity} /></td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>{alert.source}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#8A8A96' }}>{alert.connector_id}</td>
+                      <td>
+                        <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: alert.status === 'open' ? '#E5A93B' : '#555560', textTransform: 'uppercase' }}>
+                          {alert.status}
+                        </span>
+                      </td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#555560' }}>
+                        {new Date(alert.timestamp).toLocaleString('en-US', { hour12: false, month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Alert Detail Panel */}
+          {selectedAlert && (
+            <div className="panel" style={{ position: 'sticky', top: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.5rem', borderBottom: '1px solid #333340' }}>
+                <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: '#555560', textTransform: 'uppercase' }}>ALERT DETAIL</span>
+                <button onClick={() => setSelectedAlert(null)} style={{ background: 'none', border: 'none', color: '#555560', cursor: 'pointer' }}>
+                  <X size={14} />
+                </button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                <FieldBlock label="ALERT ID" value={selectedAlert.id} mono />
+                <FieldBlock label="SEVERITY" value={selectedAlert.severity.toUpperCase()} />
+                <FieldBlock label="SOURCE" value={selectedAlert.source} />
+                <FieldBlock label="CONNECTOR" value={selectedAlert.connector_id} />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '0.125rem' }}>STATUS</label>
+                <select
+                  value={selectedAlert.status}
+                  onChange={(e) => changeStatus(selectedAlert, e.target.value as AlertStatus)}
+                  className="input"
+                  style={{ width: '100%' }}
+                >
+                  <option value="open">OPEN</option>
+                  <option value="acknowledged">ACKNOWLEDGED</option>
+                  <option value="closed">CLOSED</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '0.25rem' }}>RAW PAYLOAD</label>
+                <pre style={{
+                  background: '#121212', border: '1px solid #333340',
+                  padding: '0.5rem', borderRadius: '2px',
+                  fontSize: '0.65rem', fontFamily: 'var(--font-mono)',
+                  color: '#8A8A96', overflowX: 'auto', maxHeight: '300px',
+                  whiteSpace: 'pre-wrap', wordBreak: 'break-all', margin: 0,
+                }}>
+                  {JSON.stringify(selectedAlert.raw_payload, null, 2)}
+                </pre>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
-const selectStyle: React.CSSProperties = {
-  padding: '0.5rem 0.75rem',
-  borderRadius: 'var(--radius-md)',
-  background: 'var(--color-bg-base)',
-  border: '1px solid var(--color-border)',
-  color: 'var(--color-text-primary)',
-  fontSize: '0.875rem',
-  minWidth: '140px',
-};
+function SeverityBadge({ severity }: { severity: string }) {
+  const cls: Record<string, string> = {
+    critical: 'badge-critical', high: 'badge-high', medium: 'badge-medium',
+    low: 'badge-low', info: 'badge-info',
+  };
+  return <span className={`badge ${cls[severity] || 'badge-info'}`}>{severity.toUpperCase().slice(0, 4)}</span>;
+}
+
+function FieldBlock({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div>
+      <div style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)', marginBottom: '0.125rem' }}>{label}</div>
+      <div style={{ fontSize: '0.8125rem', color: '#E0E0E0', fontFamily: mono ? 'var(--font-mono)' : undefined, wordBreak: 'break-all' }}>{value}</div>
+    </div>
+  );
+}

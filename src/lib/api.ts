@@ -310,7 +310,8 @@ export async function runAiTriage(payload: {
 // ── Scheduler Endpoints ──────────────────────────────────────────────────────
 
 export async function fetchSchedules(): Promise<import('./types').Schedule[]> {
-  return apiFetch<import('./types').Schedule[]>('/api/v1/scheduler/schedules');
+  const res = await apiFetch<{ schedules: import('./types').Schedule[] }>('/api/v1/scheduler/schedules');
+  return res.schedules || [];
 }
 
 export async function createSchedule(payload: import('./types').CreateSchedulePayload): Promise<import('./types').Schedule> {

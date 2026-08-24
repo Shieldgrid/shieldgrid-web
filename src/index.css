@@ -1,9 +1,9 @@
 /* =============================================================================
    Shieldgrid Design System — index.css
+   Industrial / Professional / Engineering-first aesthetic
    Tailwind v4 (CSS-first config, no tailwind.config.js needed)
    ============================================================================= */
 
-/* ── Google Fonts ──────────────────────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @import "tailwindcss";
@@ -11,34 +11,38 @@
 
 /* ── Design Tokens ─────────────────────────────────────────────────────────── */
 @theme {
-  /* Palette */
-  --color-bg-base:       #0B1B33;  /* Deep navy — primary background */
-  --color-bg-surface:    #132B4D;  /* Lighter navy — cards, panels */
-  --color-bg-elevated:   #1A3560;  /* Elevated surface — dropdowns, tooltips */
+  /* Palette — Industrial Dark */
+  --color-bg-base:       #121212;  /* Deep matte charcoal */
+  --color-bg-surface:    #1E1E24;  /* Card/panel background */
+  --color-bg-elevated:   #2A2A32;  /* Elevated surface — dropdowns, tooltips */
 
-  --color-accent:        #4FD1FF;  /* Cyan — primary CTA, healthy, active */
-  --color-warning:       #FF9F1C;  /* Muted orange — degraded, medium severity */
-  --color-critical:      #E71D36;  /* Sharp red — down, critical severity */
-  --color-success:       #22D3A5;  /* Teal green — resolved, confirmed-clean */
+  /* Accents — sparse, data/status only */
+  --color-accent:        #6B7B99;  /* Muted slate — interactive elements */
+  --color-warning:       #E5A93B;  /* Muted amber — alerts, warnings */
+  --color-critical:      #D32F2F;  /* Muted red — critical, down */
+  --color-success:       #4CAF50;  /* Tactical green — healthy, resolved */
 
-  --color-text-primary:  #F8FAFC;  /* Slate 50 — headings, key values */
-  --color-text-secondary:#94A3B8;  /* Slate 400 — metadata, timestamps */
-  --color-text-muted:    #475569;  /* Slate 600 — disabled, hints */
+  /* Text */
+  --color-text-primary:  #E0E0E0;  /* Off-white — headings, key values */
+  --color-text-secondary:#8A8A96;  /* Muted grey — metadata, timestamps */
+  --color-text-muted:    #555560;  /* Dim — disabled, hints */
 
-  --color-border:        #1E3A5F;  /* Subtle border */
+  /* Borders — structural separators */
+  --color-border:        #333340;  /* Primary border */
+  --color-border-subtle: #2A2A32;  /* Subtle divider */
 
   /* Typography */
-  --font-sans:   'Inter', system-ui, sans-serif;
-  --font-mono:   'JetBrains Mono', 'Fira Code', monospace;
+  --font-sans:   'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:   'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 
-  /* Spacing & Radii */
-  --radius-sm:   0.375rem;
-  --radius-md:   0.5rem;
-  --radius-lg:   0.75rem;
+  /* Spacing & Radii — tight, sharp */
+  --radius-sm:   2px;
+  --radius-md:   3px;
+  --radius-lg:   4px;
 
   /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-base: 200ms ease;
+  --transition-fast: 100ms ease;
+  --transition-base: 150ms ease;
 }
 
 /* ── Base Styles ────────────────────────────────────────────────────────────── */
@@ -48,6 +52,7 @@
 
 html {
   font-family: var(--font-sans);
+  font-size: 13px;
   background-color: var(--color-bg-base);
   color: var(--color-text-primary);
   -webkit-font-smoothing: antialiased;
@@ -57,6 +62,7 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
+  background: var(--color-bg-base);
 }
 
 /* ── Typography Scale ───────────────────────────────────────────────────────── */
@@ -67,28 +73,200 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0;
 }
 
-h1 { font-size: 1.875rem; }
-h2 { font-size: 1.5rem; }
-h3 { font-size: 1.25rem; }
-h4 { font-size: 1.125rem; }
+h1 { font-size: 1.625rem; }
+h2 { font-size: 1.375rem; }
+h3 { font-size: 1.125rem; }
+h4 { font-size: 1rem; }
 
 p {
   margin: 0;
   color: var(--color-text-secondary);
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 code, pre, kbd {
   font-family: var(--font-mono);
-  font-size: 0.875em;
+  font-size: 0.85em;
 }
 
-/* ── Scrollbar styling ──────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+/* ── Monospace data class ───────────────────────────────────────────────────── */
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+.mono-sm {
+  font-family: var(--font-mono);
+  font-size: 0.75em;
+  letter-spacing: -0.02em;
+}
+
+/* ── Industrial panel ───────────────────────────────────────────────────────── */
+.panel {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: 0.5rem;
+}
+
+.panel-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+}
+
+/* ── Status indicators ─────────────────────────────────────────────────────── */
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.status-dot.ok { background: var(--color-success); }
+.status-dot.warn { background: var(--color-warning); }
+.status-dot.error { background: var(--color-critical); }
+.status-dot.off { background: var(--color-text-muted); }
+
+/* ── Industrial button ──────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.btn:hover {
+  background: #333340;
+  color: var(--color-text-primary);
+}
+
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-bg-base);
+  border-color: var(--color-accent);
+}
+
+.btn-primary:hover {
+  background: #7d8da8;
+}
+
+.btn-danger {
+  border-color: var(--color-critical);
+  color: var(--color-critical);
+}
+
+.btn-danger:hover {
+  background: rgba(211, 47, 47, 0.1);
+}
+
+/* ── Industrial input ───────────────────────────────────────────────────────── */
+.input {
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.375rem 0.625rem;
+  color: var(--color-text-primary);
+  font-size: 0.8125rem;
+  font-family: var(--font-mono);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.input:focus {
+  border-color: var(--color-accent);
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* ── Industrial table ───────────────────────────────────────────────────────── */
+.table-container {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.table-container th {
+  background: var(--color-bg-elevated);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table-container td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-primary);
+}
+
+.table-container tr:last-child td {
+  border-bottom: none;
+}
+
+.table-container tr:hover td {
+  background: rgba(107, 123, 153, 0.05);
+}
+
+/* ── Badge / Tag ────────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-family: var(--font-mono);
+}
+
+.badge-critical { border-color: var(--color-critical); color: var(--color-critical); }
+.badge-high { border-color: #E5A93B; color: #E5A93B; }
+.badge-medium { border-color: var(--color-warning); color: var(--color-warning); }
+.badge-low { border-color: var(--color-text-muted); color: var(--color-text-secondary); }
+.badge-info { border-color: var(--color-accent); color: var(--color-accent); }
+.badge-success { border-color: var(--color-success); color: var(--color-success); }
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
   background: var(--color-border);
-  border-radius: 3px;
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-muted);
@@ -96,13 +274,27 @@ code, pre, kbd {
 
 /* ── Focus ring ─────────────────────────────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
+  outline: 1px solid var(--color-accent);
+  outline-offset: 1px;
 }
 
 /* ── Selection ──────────────────────────────────────────────────────────────── */
 ::selection {
-  background-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  background-color: color-mix(in srgb, var(--color-accent) 20%, transparent);
   color: var(--color-text-primary);
 }
+
+/* ── Tailwind prose overrides for AI chat ───────────────────────────────────── */
+.prose { color: var(--color-text-primary); }
+.prose h1, .prose h2, .prose h3, .prose h4 { color: var(--color-text-primary); }
+.prose p { color: var(--color-text-secondary); }
+.prose strong { color: var(--color-text-primary); }
+.prose a { color: var(--color-accent); }
+.prose code { color: var(--color-warning); background: var(--color-bg-base); padding: 0.1em 0.3em; border-radius: 2px; }
+.prose pre { background: var(--color-bg-base); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+.prose table { border: 1px solid var(--color-border); }
+.prose th { background: var(--color-bg-elevated); }
+.prose td, .prose th { border: 1px solid var(--color-border); padding: 0.375rem 0.625rem; }
+.prose ul { color: var(--color-text-secondary); }
+.prose li { color: var(--color-text-secondary); }
+.prose blockquote { border-left-color: var(--color-accent); color: var(--color-text-secondary); }

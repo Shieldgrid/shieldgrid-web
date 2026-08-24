@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { fetchHealth, fetchAlerts, fetchCases, fetchJobs, fetchSecurityPostureSummary } from '../lib/api';
 import type { HealthResponse, NormalizedAlert, Case, IngestJob, SecurityPostureSummary } from '../lib/types';
+import {
+  Crosshair, Search, Shield,
+  Map, Activity, Brain, Users, RefreshCw, ChevronRight
+} from 'lucide-react';
 
 export default function DashboardPage() {
   const { isAuthenticated } = useAuth();
@@ -46,156 +50,203 @@ export default function DashboardPage() {
   const totalConnectors = health?.connectors.length ?? 0;
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h1 className="text-2xl font-bold text-white">SOC Operations Overview</h1>
-          <p className="text-slate-400 text-sm mt-1">Real-time status of your security infrastructure</p>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#E0E0E0', margin: 0 }}>
+            SOC Operations Overview
+          </h1>
+          <p style={{ fontSize: '0.75rem', color: '#555560', fontFamily: 'var(--font-mono)', margin: '0.25rem 0 0' }}>
+            SYSTEM STATUS // REAL-TIME INFRASTRUCTURE MONITORING
+          </p>
         </div>
-        <button onClick={loadData} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm transition-colors">
-          Refresh
+        <button
+          onClick={loadData}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '0.375rem',
+            padding: '0.375rem 0.625rem', background: '#1E1E24',
+            border: '1px solid #333340', borderRadius: '2px',
+            color: '#8A8A96', fontSize: '0.75rem', cursor: 'pointer',
+            fontFamily: 'var(--font-mono)',
+          }}
+        >
+          <RefreshCw size={12} /> REFRESH
         </button>
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl p-5 animate-pulse">
-              <div className="h-4 bg-slate-700 rounded w-20 mb-3"></div>
-              <div className="h-8 bg-slate-700 rounded w-16 mb-2"></div>
-              <div className="h-3 bg-slate-700 rounded w-32"></div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
+          {[...Array(4)].map((_, i) => (
+            <div key={i} style={{ background: '#1E1E24', border: '1px solid #333340', borderRadius: '2px', padding: '0.75rem', opacity: 0.5 }}>
+              <div style={{ height: '10px', background: '#2A2A32', borderRadius: '2px', width: '60px', marginBottom: '0.5rem' }} />
+              <div style={{ height: '20px', background: '#2A2A32', borderRadius: '2px', width: '40px' }} />
             </div>
           ))}
         </div>
       ) : (
         <>
-          {/* Metric Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* KPI Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
             <MetricCard
-              title="Active Alerts"
+              title="ALERTS"
               value={alerts.length}
-              subtitle={`${criticalAlerts} critical · ${highAlerts} high`}
-              color={criticalAlerts > 0 ? '#E71D36' : '#4FD1FF'}
-              icon="⚡"
+              subtitle={`${criticalAlerts} critical | ${highAlerts} high`}
+              accentColor={criticalAlerts > 0 ? '#D32F2F' : '#6B7B99'}
               onClick={() => navigate('/alerts')}
             />
             <MetricCard
-              title="Open Cases"
+              title="CASES"
               value={openCases}
-              subtitle={`${cases.length} total cases`}
-              color="#FF9F1C"
-              icon="📁"
+              subtitle={`${cases.length} total | ${openCases} open`}
+              accentColor="#E5A93B"
               onClick={() => navigate('/cases')}
             />
             <MetricCard
-              title="Connectors"
+              title="CONNECTORS"
               value={`${healthyConnectors}/${totalConnectors}`}
-              subtitle="Healthy / Total"
-              color="#22D3A5"
-              icon="🔌"
+              subtitle="healthy / total"
+              accentColor={healthyConnectors === totalConnectors ? '#4CAF50' : '#D32F2F'}
               onClick={() => navigate('/connectors')}
             />
             <MetricCard
-              title="Ingest Jobs"
+              title="INGEST JOBS"
               value={jobs.filter(j => j.enabled).length}
-              subtitle={`${jobs.length} total configured`}
-              color="#4FD1FF"
-              icon="🔄"
+              subtitle={`${jobs.length} configured`}
+              accentColor="#6B7B99"
               onClick={() => navigate('/scheduler')}
             />
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl p-5">
-            <h3 className="text-white font-semibold mb-4">Quick Actions</h3>
-            <div className="flex flex-wrap gap-3">
-              <QuickAction icon="🎯" label="AI Triage" color="#4FD1FF" onClick={() => navigate('/ai')} />
-              <QuickAction icon="🔍" label="Threat Intel" color="#818CF8" onClick={() => navigate('/threat-intel')} />
-              <QuickAction icon="🛡️" label="Response Actions" color="#22D3A5" onClick={() => navigate('/actions')} />
-              <QuickAction icon="📋" label="Detection Rules" color="#FF9F1C" onClick={() => navigate('/rules')} />
-              <QuickAction icon="🗺️" label="MITRE Matrix" color="#F472B6" onClick={() => navigate('/mitre')} />
-              <QuickAction icon="📊" label="Monitoring" color="#22D3A5" onClick={() => navigate('/monitoring')} />
-              <QuickAction icon="🤖" label="AI Chat" color="#C084FC" onClick={() => navigate('/ai-chat')} />
-              <QuickAction icon="👥" label="Agents" color="#38BDF8" onClick={() => navigate('/agents')} />
+          <div className="panel">
+            <div className="panel-header">
+              <span className="panel-title">QUICK ACTIONS</span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+              <QuickAction label="AI Triage" icon={Brain} onClick={() => navigate('/ai')} />
+              <QuickAction label="Threat Intel" icon={Search} onClick={() => navigate('/threat-intel')} />
+              <QuickAction label="Response" icon={Shield} onClick={() => navigate('/actions')} />
+              <QuickAction label="Rules" icon={Crosshair} onClick={() => navigate('/rules')} />
+              <QuickAction label="MITRE" icon={Map} onClick={() => navigate('/mitre')} />
+              <QuickAction label="Monitoring" icon={Activity} onClick={() => navigate('/monitoring')} />
+              <QuickAction label="Agents" icon={Users} onClick={() => navigate('/agents')} />
             </div>
           </div>
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0.75rem' }}>
             {/* Recent Alerts */}
-            <div className="lg:col-span-2 bg-[#132B4D] border border-[#1E3A5F] rounded-xl">
-              <div className="flex items-center justify-between p-5 border-b border-[#1E3A5F]">
-                <h3 className="text-white font-semibold">Recent Alerts</h3>
-                <button onClick={() => navigate('/alerts')} className="text-[#4FD1FF] text-sm hover:underline">View All</button>
+            <div className="panel" style={{ padding: 0 }}>
+              <div className="panel-header" style={{ padding: '0.5rem 0.75rem' }}>
+                <span className="panel-title">RECENT ALERTS</span>
+                <button
+                  onClick={() => navigate('/alerts')}
+                  style={{ background: 'none', border: 'none', color: '#6B7B99', cursor: 'pointer', fontSize: '0.7rem', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                >
+                  VIEW ALL <ChevronRight size={10} />
+                </button>
               </div>
-              <div className="divide-y divide-[#1E3A5F]">
-                {alerts.slice(0, 8).map(alert => (
-                  <div key={alert.id} className="px-5 py-3 flex items-center justify-between hover:bg-[#1A3560] transition-colors">
-                    <div className="flex items-center gap-3">
-                      <SeverityBadge severity={alert.severity} />
-                      <div>
-                        <div className="text-white text-sm font-medium">{alert.source_id}</div>
-                        <div className="text-slate-400 text-xs">{alert.connector_id} · {alert.source}</div>
-                      </div>
-                    </div>
-                    <div className="text-slate-500 text-xs">{new Date(alert.timestamp).toLocaleString()}</div>
-                  </div>
-                ))}
-                {alerts.length === 0 && (
-                  <div className="px-5 py-8 text-center text-slate-500">No alerts</div>
-                )}
+              <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>SEVERITY</th>
+                      <th>SOURCE</th>
+                      <th>CONNECTOR</th>
+                      <th>TIME</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {alerts.slice(0, 8).map(alert => (
+                      <tr key={alert.id} style={{ cursor: 'pointer' }} onClick={() => navigate('/alerts')}>
+                        <td><SeverityBadge severity={alert.severity} /></td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>{alert.source}</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#8A8A96' }}>{alert.connector_id}</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#555560' }}>
+                          {new Date(alert.timestamp).toLocaleTimeString('en-US', { hour12: false })}
+                        </td>
+                      </tr>
+                    ))}
+                    {alerts.length === 0 && (
+                      <tr><td colSpan={4} style={{ textAlign: 'center', color: '#555560', padding: '1.5rem' }}>NO ALERTS</td></tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
 
             {/* Right Column */}
-            <div className="space-y-6">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {/* Security Posture */}
               {posture && (
-                <div className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl p-5">
-                  <h3 className="text-white font-semibold mb-4">Security Posture</h3>
-                  <div className="space-y-3">
-                    <PostureRow label="Open Alerts" value={posture.open_alerts_count} color="#4FD1FF" />
-                    <PostureRow label="Critical" value={posture.critical_alerts_count} color="#E71D36" />
-                    <PostureRow label="Active Cases" value={posture.active_cases_count} color="#FF9F1C" />
-                    <PostureRow label="Actions Executed" value={posture.executed_actions_count} color="#22D3A5" />
-                    <PostureRow label="High Risk IOCs" value={posture.high_risk_iocs_cached} color="#C084FC" />
+                <div className="panel">
+                  <div className="panel-header">
+                    <span className="panel-title">SECURITY POSTURE</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                    <PostureRow label="Open Alerts" value={posture.open_alerts_count} />
+                    <PostureRow label="Critical" value={posture.critical_alerts_count} accent="#D32F2F" />
+                    <PostureRow label="Active Cases" value={posture.active_cases_count} />
+                    <PostureRow label="Actions Executed" value={posture.executed_actions_count} accent="#4CAF50" />
+                    <PostureRow label="High Risk IOCs" value={posture.high_risk_iocs_cached} accent="#E5A93B" />
                   </div>
                   {posture.top_threat_summary && (
-                    <div className="mt-4 p-3 bg-[#0B1B33] rounded-lg">
-                      <p className="text-slate-400 text-xs">{posture.top_threat_summary}</p>
+                    <div style={{ marginTop: '0.5rem', padding: '0.375rem 0.5rem', background: '#121212', border: '1px solid #333340', borderRadius: '2px' }}>
+                      <p style={{ fontSize: '0.7rem', color: '#8A8A96', fontFamily: 'var(--font-mono)', margin: 0 }}>{posture.top_threat_summary}</p>
                     </div>
                   )}
                 </div>
               )}
 
               {/* Open Cases */}
-              <div className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl">
-                <div className="flex items-center justify-between p-5 border-b border-[#1E3A5F]">
-                  <h3 className="text-white font-semibold">Open Cases</h3>
-                  <button onClick={() => navigate('/cases')} className="text-[#4FD1FF] text-sm hover:underline">View All</button>
+              <div className="panel" style={{ padding: 0 }}>
+                <div className="panel-header" style={{ padding: '0.5rem 0.75rem' }}>
+                  <span className="panel-title">OPEN CASES</span>
+                  <button
+                    onClick={() => navigate('/cases')}
+                    style={{ background: 'none', border: 'none', color: '#6B7B99', cursor: 'pointer', fontSize: '0.7rem', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                  >
+                    VIEW ALL <ChevronRight size={10} />
+                  </button>
                 </div>
-                <div className="divide-y divide-[#1E3A5F]">
+                <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
                   {cases.filter(c => c.status.toLowerCase() === 'open').slice(0, 5).map(c => (
-                    <div key={c.id} className="px-5 py-3 hover:bg-[#1A3560] transition-colors cursor-pointer" onClick={() => navigate(`/cases/${c.id}`)}>
-                      <div className="text-white text-sm font-medium">{c.title}</div>
-                      <div className="text-slate-500 text-xs mt-1">{new Date(c.created_at).toLocaleDateString()}</div>
+                    <div
+                      key={c.id}
+                      style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid #2A2A32', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      onClick={() => navigate(`/cases/${c.id}`)}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(107,123,153,0.05)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      <div>
+                        <div style={{ fontSize: '0.8125rem', color: '#E0E0E0' }}>{c.title}</div>
+                        <div style={{ fontSize: '0.65rem', color: '#555560', fontFamily: 'var(--font-mono)', marginTop: '0.125rem' }}>
+                          {new Date(c.created_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <ChevronRight size={12} style={{ color: '#555560' }} />
                     </div>
                   ))}
                   {cases.filter(c => c.status.toLowerCase() === 'open').length === 0 && (
-                    <div className="px-5 py-6 text-center text-slate-500 text-sm">No open cases</div>
+                    <div style={{ padding: '1rem', textAlign: 'center', color: '#555560', fontSize: '0.75rem' }}>NO OPEN CASES</div>
                   )}
                 </div>
               </div>
 
               {/* Connector Health */}
-              <div className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl p-5">
-                <h3 className="text-white font-semibold mb-4">Connectors</h3>
-                <div className="space-y-2">
+              <div className="panel">
+                <div className="panel-header">
+                  <span className="panel-title">CONNECTOR HEALTH</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                   {health?.connectors.map(conn => (
-                    <div key={conn.id} className="flex items-center justify-between">
-                      <span className="text-slate-300 text-sm capitalize">{conn.id}</span>
-                      <StatusDot status={conn.status} />
+                    <div key={conn.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.25rem 0' }}>
+                      <span style={{ fontSize: '0.8125rem', fontFamily: 'var(--font-mono)', color: '#E0E0E0', textTransform: 'uppercase' }}>{conn.id}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                        <span className={`status-dot ${conn.status === 'healthy' ? 'ok' : conn.status === 'degraded' ? 'warn' : 'error'}`} />
+                        <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: '#8A8A96' }}>{conn.status}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -208,60 +259,70 @@ export default function DashboardPage() {
   );
 }
 
-function MetricCard({ title, value, subtitle, color, icon, onClick }: {
-  title: string; value: string | number; subtitle: string; color: string; icon: string; onClick: () => void;
+function MetricCard({ title, value, subtitle, accentColor, onClick }: {
+  title: string; value: string | number; subtitle: string; accentColor: string; onClick: () => void;
 }) {
   return (
-    <button onClick={onClick} className="bg-[#132B4D] border border-[#1E3A5F] rounded-xl p-5 text-left hover:border-[#4FD1FF]/30 transition-all group">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-slate-400 text-sm">{title}</span>
-        <span className="text-lg">{icon}</span>
+    <button
+      onClick={onClick}
+      style={{
+        background: '#1E1E24', border: '1px solid #333340', borderRadius: '2px',
+        padding: '0.625rem 0.75rem', textAlign: 'left', cursor: 'pointer',
+        transition: 'border-color 100ms',
+        display: 'flex', flexDirection: 'column', gap: '0.25rem',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = accentColor; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#333340'; }}
+    >
+      <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: '#555560', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        {title}
+      </span>
+      <div style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: accentColor, lineHeight: 1 }}>
+        {value}
       </div>
-      <div className="text-3xl font-bold" style={{ color }}>{value}</div>
-      <div className="text-slate-500 text-xs mt-1">{subtitle}</div>
+      <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: '#555560' }}>
+        {subtitle}
+      </span>
     </button>
   );
 }
 
-function QuickAction({ icon, label, color, onClick }: { icon: string; label: string; color: string; onClick: () => void }) {
+function QuickAction({ label, icon: Icon, onClick }: { label: string; icon: any; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="flex items-center gap-2 px-4 py-2 rounded-lg border transition-all hover:scale-105" style={{ borderColor: color + '40', background: color + '10', color }}>
-      <span>{icon}</span>
-      <span className="text-sm font-medium">{label}</span>
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '0.375rem',
+        padding: '0.375rem 0.625rem', background: 'transparent',
+        border: '1px solid #333340', borderRadius: '2px',
+        color: '#8A8A96', fontSize: '0.75rem', cursor: 'pointer',
+        fontFamily: 'var(--font-mono)',
+        transition: 'border-color 100ms, color 100ms',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#6B7B99'; e.currentTarget.style.color = '#E0E0E0'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#333340'; e.currentTarget.style.color = '#8A8A96'; }}
+    >
+      <Icon size={12} /> {label}
     </button>
   );
 }
 
 function SeverityBadge({ severity }: { severity: string }) {
-  const colors: Record<string, string> = {
-    critical: 'bg-red-500/20 text-red-400',
-    high: 'bg-orange-500/20 text-orange-400',
-    medium: 'bg-yellow-500/20 text-yellow-400',
-    low: 'bg-blue-500/20 text-blue-400',
-    info: 'bg-slate-500/20 text-slate-400',
+  const cls: Record<string, string> = {
+    critical: 'badge-critical',
+    high: 'badge-high',
+    medium: 'badge-medium',
+    low: 'badge-low',
+    info: 'badge-info',
   };
-  return (
-    <span className={`px-2 py-1 rounded text-xs font-medium ${colors[severity] || colors.info}`}>
-      {severity}
-    </span>
-  );
+  return <span className={`badge ${cls[severity] || 'badge-info'}`}>{severity.toUpperCase()}</span>;
 }
 
-function StatusDot({ status }: { status: string }) {
-  const color = status === 'healthy' ? 'bg-green-400' : status === 'degraded' ? 'bg-yellow-400' : 'bg-red-400';
+function PostureRow({ label, value, accent }: { label: string; value: number; accent?: string }) {
   return (
-    <div className="flex items-center gap-2">
-      <div className={`w-2 h-2 rounded-full ${color}`}></div>
-      <span className="text-slate-400 text-xs capitalize">{status}</span>
-    </div>
-  );
-}
-
-function PostureRow({ label, value, color }: { label: string; value: number; color: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-slate-400 text-sm">{label}</span>
-      <span className="font-semibold" style={{ color }}>{value}</span>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.125rem 0' }}>
+      <span style={{ fontSize: '0.75rem', color: '#8A8A96' }}>{label}</span>
+      <span style={{ fontSize: '0.8125rem', fontWeight: 600, fontFamily: 'var(--font-mono)', color: accent || '#E0E0E0' }}>{value}</span>
     </div>
   );
 }

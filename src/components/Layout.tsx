@@ -1,8 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
+import { fetchHealth } from '../lib/api';
+import type { HealthResponse } from '../lib/types';
 import { ThreatIntelDrawer } from './ThreatIntelDrawer';
 import logoSvg from '../assets/shieldgrid-logo-concept-a.svg';
+import {
+  LayoutDashboard, AlertTriangle, FolderOpen, Shield, Crosshair,
+  Map, Search, Monitor, Brain, Clock, Globe, Bell, FileText,
+  Activity, Terminal, Users, ScrollText, ChevronLeft, ChevronRight,
+  LogOut, Zap, Plug
+} from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,8 +22,27 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [intelDrawerOpen, setIntelDrawerOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [systemTime, setSystemTime] = useState(new Date());
+  const [health, setHealth] = useState<HealthResponse | null>(null);
 
-  const sidebarWidth = collapsed ? '64px' : '240px';
+  useEffect(() => {
+    const timer = setInterval(() => setSystemTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const loadHealth = () => fetchHealth().then(setHealth).catch(() => {});
+    loadHealth();
+    const interval = setInterval(loadHealth, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getConnectorStatus = (id: string) => {
+    const c = health?.connectors.find(c => c.id === id);
+    return c?.status || 'unknown';
+  };
+
+  const sidebarWidth = collapsed ? '48px' : '200px';
 
   const handleLogout = () => {
     logout();
@@ -23,326 +50,313 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   const navItems = [
-    { label: 'Dashboard', path: '/dashboard', icon: '📊' },
-    { label: 'Alerts', path: '/alerts', icon: '⚡' },
-    { label: 'Cases', path: '/cases', icon: '📁' },
-    { label: 'Actions', path: '/actions', icon: '🛡️' },
-    { label: 'Detection Rules', path: '/rules', icon: '🎯' },
-    { label: 'MITRE Matrix', path: '/mitre', icon: '🗺️' },
-    { label: '---' },
-    { label: 'Threat Intel', path: '/threat-intel', icon: '🔍' },
-    { label: 'SCA & Vulns', path: '/sca-vulnerabilities', icon: '🛡️' },
-    { label: 'Agent Inventory', path: '/agents', icon: '🖥️' },
-    { label: '---' },
-    { label: 'AI Dashboard', path: '/ai', icon: '🧠' },
-    { label: 'Scheduler', path: '/scheduler', icon: '⏰' },
-    { label: '---' },
-    { label: 'Network Devices', path: '/network-connectors', icon: '🌐', role: 'admin' },
-    { label: 'Notifications', path: '/notifications', icon: '🔔' },
-    { label: 'Reports', path: '/reports', icon: '📊' },
-    { label: 'Monitoring', path: '/monitoring', icon: '📈' },
-    { label: '---' },
-    { label: 'Connectors', path: '/connectors', icon: '🔌', role: 'admin' },
-    { label: 'VQL Shell', path: '/velociraptor', icon: '🖥️', role: 'admin' },
-    { label: 'Users', path: '/users', icon: '👥', role: 'admin' },
-    { label: 'Audit Log', path: '/audit', icon: '📜', role: 'admin' },
+    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { label: 'Alerts', path: '/alerts', icon: AlertTriangle },
+    { label: 'Cases', path: '/cases', icon: FolderOpen },
+    { label: 'Actions', path: '/actions', icon: Zap },
+    { label: 'Detection Rules', path: '/rules', icon: Crosshair },
+    { label: 'MITRE Matrix', path: '/mitre', icon: Map },
+    { sep: true },
+    { label: 'Threat Intel', path: '/threat-intel', icon: Search },
+    { label: 'SCA & Vulns', path: '/sca-vulnerabilities', icon: Shield },
+    { label: 'Agent Inventory', path: '/agents', icon: Monitor },
+    { sep: true },
+    { label: 'AI Analyst', path: '/ai', icon: Brain },
+    { label: 'Scheduler', path: '/scheduler', icon: Clock },
+    { sep: true },
+    { label: 'Network Devices', path: '/network-connectors', icon: Globe, role: 'admin' },
+    { label: 'Notifications', path: '/notifications', icon: Bell },
+    { label: 'Reports', path: '/reports', icon: FileText },
+    { label: 'Monitoring', path: '/monitoring', icon: Activity },
+    { sep: true },
+    { label: 'Connectors', path: '/connectors', icon: Plug, role: 'admin' },
+    { label: 'VQL Shell', path: '/velociraptor', icon: Terminal, role: 'admin' },
+    { label: 'Users', path: '/users', icon: Users, role: 'admin' },
+    { label: 'Audit Log', path: '/audit', icon: ScrollText, role: 'admin' },
   ];
 
+  const formatTime = (d: Date) => {
+    return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  };
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg-base)' }}>
-      {/* ── Sidebar ──────────────────────────────────────────────────────────── */}
-      <aside
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#121212' }}>
+      {/* ── System Status Bar ────────────────────────────────────────────────── */}
+      <div
         style={{
-          width: sidebarWidth,
-          minWidth: sidebarWidth,
-          background: 'var(--color-bg-surface)',
-          borderRight: '1px solid var(--color-border)',
+          height: '28px',
+          background: '#1A1A22',
+          borderBottom: '1px solid #333340',
           display: 'flex',
-          flexDirection: 'column',
-          transition: 'width 200ms ease, min-width 200ms ease',
-          overflow: 'hidden',
-          position: 'relative',
-          zIndex: 10,
+          alignItems: 'center',
+          padding: '0 0.75rem',
+          fontSize: '0.7rem',
+          fontFamily: 'var(--font-mono)',
+          color: '#8A8A96',
+          gap: '1.5rem',
+          flexShrink: 0,
+          zIndex: 20,
         }}
       >
-        {/* Logo Header + Toggle */}
-        <div
-          style={{
-            padding: collapsed ? '1rem 0' : '1.25rem 1.25rem',
-            borderBottom: '1px solid var(--color-border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: collapsed ? 'center' : 'space-between',
-            minHeight: '64px',
-          }}
-        >
-          {collapsed ? (
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                flexShrink: 0,
-              }}
-            >
-              <img src={logoSvg} alt="SG" style={{ width: '32px', height: '32px' }} />
-            </div>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <img src={logoSvg} alt="Shieldgrid Logo" style={{ width: '32px', height: '32px', flexShrink: 0 }} />
-              <div>
-                <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0, whiteSpace: 'nowrap' }}>
-                  Shieldgrid
-                </h2>
-                <span style={{ fontSize: '0.65rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
-                  SOC Operations
-                </span>
-              </div>
-            </div>
-          )}
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+          <span className="status-dot ok" /> SHIELDGRID v2.1.0
+        </span>
+        <span style={{ color: '#555560' }}>|</span>
+        <span>DEPLOY: PRODUCTION</span>
+        <span style={{ color: '#555560' }}>|</span>
+        <span>DB: <span style={{ color: '#4CAF50' }}>CONNECTED</span></span>
+        <span style={{ color: '#555560' }}>|</span>
+        <span>WAZUH: <span style={{ color: getConnectorStatus('wazuh') === 'healthy' ? '#4CAF50' : '#D32F2F' }}>{getConnectorStatus('wazuh').toUpperCase()}</span></span>
+        <span style={{ color: '#555560' }}>|</span>
+        <span>VR: <span style={{ color: getConnectorStatus('velociraptor') === 'healthy' ? '#4CAF50' : '#D32F2F' }}>{getConnectorStatus('velociraptor').toUpperCase()}</span></span>
+        <div style={{ flex: 1 }} />
+        <span style={{ color: '#E5A93B', border: '1px solid #E5A93B', padding: '0 0.375rem', borderRadius: '2px' }}>
+          RELEASE NOTES
+        </span>
+        <span style={{ color: '#555560' }}>|</span>
+        <span>{formatTime(systemTime)} UTC</span>
+      </div>
 
-          {/* Toggle Button */}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            style={{
-              width: '28px',
-              height: '28px',
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'transparent',
-              border: '1px solid var(--color-border)',
-              borderRadius: '6px',
-              color: 'var(--color-text-secondary)',
-              cursor: 'pointer',
-              fontSize: '0.75rem',
-              transition: 'background 150ms ease, color 150ms ease',
-              marginLeft: collapsed ? 0 : undefined,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(99,102,241,0.1)';
-              e.currentTarget.style.color = 'var(--color-accent)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
-            }}
-          >
-            {collapsed ? '»' : '«'}
-          </button>
-        </div>
-
-        {/* Nav Links */}
-        <nav
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {/* ── Sidebar ────────────────────────────────────────────────────── */}
+        <aside
           style={{
-            padding: collapsed ? '0.75rem 0' : '1rem 0.75rem',
-            flex: 1,
+            width: sidebarWidth,
+            minWidth: sidebarWidth,
+            background: '#1A1A22',
+            borderRight: '1px solid #333340',
             display: 'flex',
             flexDirection: 'column',
-            gap: '0.125rem',
-            overflowY: 'auto',
-            overflowX: 'hidden',
+            transition: 'width 150ms ease, min-width 150ms ease',
+            overflow: 'hidden',
+            position: 'relative',
+            zIndex: 10,
           }}
         >
-          {navItems.map((item, idx) => {
-            if (item.label === '---') {
+          {/* Logo */}
+          <div
+            style={{
+              padding: collapsed ? '0.625rem 0' : '0.625rem 0.75rem',
+              borderBottom: '1px solid #333340',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: collapsed ? 'center' : 'space-between',
+              height: '40px',
+            }}
+          >
+            {collapsed ? (
+              <img src={logoSvg} alt="SG" style={{ width: '20px', height: '20px' }} />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <img src={logoSvg} alt="Shieldgrid" style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#E0E0E0', letterSpacing: '0.02em' }}>
+                  SHIELDGRID
+                </span>
+              </div>
+            )}
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              title={collapsed ? 'Expand' : 'Collapse'}
+              style={{
+                width: '22px', height: '22px', flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'transparent', border: '1px solid #333340',
+                borderRadius: '2px', color: '#8A8A96', cursor: 'pointer',
+                fontSize: '0.65rem',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#6B7B99'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#333340'; }}
+            >
+              {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+            </button>
+          </div>
+
+          {/* Nav Links */}
+          <nav
+            style={{
+              padding: collapsed ? '0.375rem 0' : '0.375rem 0.5rem',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1px',
+              overflowY: 'auto',
+              overflowX: 'hidden',
+            }}
+          >
+            {navItems.map((item, idx) => {
+              if ('sep' in item && item.sep) {
+                return (
+                  <div
+                    key={`sep-${idx}`}
+                    style={{
+                      height: '1px',
+                      background: '#333340',
+                      margin: collapsed ? '0.25rem 6px' : '0.25rem 0',
+                    }}
+                  />
+                );
+              }
+              if ('role' in item && item.role && user?.role !== item.role) return null;
+
+              const navItem = item as { label: string; path: string; icon: any };
+              const Icon = navItem.icon;
+              const isActive = location.pathname === navItem.path;
+
               return (
                 <div
-                  key={`sep-${idx}`}
-                  style={{
-                    height: '1px',
-                    background: 'var(--color-border)',
-                    margin: collapsed ? '0.375rem 8px' : '0.375rem 0',
-                  }}
-                />
-              );
-            }
-            if (item.role && user?.role !== item.role) return null;
-
-            const isActive = location.pathname === item.path;
-
-            return (
-              <div
-                key={item.path}
-                style={{ position: 'relative' }}
-                onMouseEnter={() => collapsed && setHoveredItem(item.path!)}
-                onMouseLeave={() => collapsed && setHoveredItem(null)}
-              >
-                <NavLink
-                  to={item.path!}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: collapsed ? 'center' : 'flex-start',
-                    gap: '0.75rem',
-                    padding: collapsed ? '0.5rem' : '0.5rem 0.875rem',
-                    borderRadius: 'var(--radius-md)',
-                    textDecoration: 'none',
-                    fontSize: '0.8125rem',
-                    fontWeight: 500,
-                    color: isActive ? '#0B1B33' : 'var(--color-text-secondary)',
-                    background: isActive ? 'var(--color-accent)' : 'transparent',
-                    transition: 'background 150ms ease, color 150ms ease',
-                    whiteSpace: 'nowrap',
-                    minWidth: collapsed ? '40px' : undefined,
-                  }}
-                  title={collapsed ? item.label : undefined}
+                  key={navItem.path}
+                  style={{ position: 'relative' }}
+                  onMouseEnter={() => collapsed && setHoveredItem(navItem.path)}
+                  onMouseLeave={() => collapsed && setHoveredItem(null)}
                 >
-                  <span style={{ fontSize: '1rem', flexShrink: 0, width: '20px', textAlign: 'center' }}>{item.icon}</span>
-                  {!collapsed && <span>{item.label}</span>}
-                </NavLink>
-
-                {/* Tooltip for collapsed mode */}
-                {collapsed && hoveredItem === item.path && (
-                  <div
+                  <NavLink
+                    to={navItem.path}
                     style={{
-                      position: 'absolute',
-                      left: 'calc(100% + 8px)',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      padding: '0.375rem 0.625rem',
-                      background: 'var(--color-bg-surface)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: '0.8rem',
-                      fontWeight: 500,
-                      color: 'var(--color-text-primary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: collapsed ? 'center' : 'flex-start',
+                      gap: '0.5rem',
+                      padding: collapsed ? '0.375rem' : '0.375rem 0.625rem',
+                      borderRadius: '2px',
+                      textDecoration: 'none',
+                      fontSize: '0.8125rem',
+                      fontWeight: isActive ? 600 : 400,
+                      color: isActive ? '#121212' : '#8A8A96',
+                      background: isActive ? '#E0E0E0' : 'transparent',
+                      transition: 'background 100ms, color 100ms',
                       whiteSpace: 'nowrap',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                      zIndex: 50,
-                      pointerEvents: 'none',
+                      minHeight: '28px',
                     }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = 'rgba(107,123,153,0.08)';
+                        e.currentTarget.style.color = '#E0E0E0';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.color = '#8A8A96';
+                      }
+                    }}
+                    title={collapsed ? navItem.label : undefined}
                   >
-                    {item.icon} {item.label}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </nav>
+                    <Icon size={14} style={{ flexShrink: 0 }} />
+                    {!collapsed && <span>{navItem.label}</span>}
+                  </NavLink>
 
-        {/* Threat Intel Quick Action */}
-        {!collapsed ? (
-          <div style={{ padding: '0 0.75rem 0.75rem 0.75rem' }}>
+                  {collapsed && hoveredItem === navItem.path && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: 'calc(100% + 6px)',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        padding: '0.25rem 0.5rem',
+                        background: '#2A2A32',
+                        border: '1px solid #333340',
+                        borderRadius: '2px',
+                        fontSize: '0.75rem',
+                        color: '#E0E0E0',
+                        whiteSpace: 'nowrap',
+                        zIndex: 50,
+                        pointerEvents: 'none',
+                        fontFamily: 'var(--font-mono)',
+                      }}
+                    >
+                      {navItem.label}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+
+          {/* Threat Intel Quick Access */}
+          <div style={{ padding: collapsed ? '0 0.375rem 0.375rem' : '0 0.5rem 0.5rem' }}>
             <button
               onClick={() => setIntelDrawerOpen(true)}
+              title="Threat Intelligence"
               style={{
                 width: '100%',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                padding: '0.625rem',
-                background: 'rgba(99, 102, 241, 0.15)',
-                border: '1px solid rgba(99, 102, 241, 0.3)',
-                borderRadius: 'var(--radius-md)',
-                color: '#818cf8',
-                fontSize: '0.8125rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              <span>⚡</span> Threat Intel
-            </button>
-          </div>
-        ) : (
-          <div style={{ padding: '0 0.5rem 0.5rem 0.5rem', display: 'flex', justifyContent: 'center' }}>
-            <button
-              onClick={() => setIntelDrawerOpen(true)}
-              title="Threat Intel"
-              style={{
-                width: '40px',
-                height: '40px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'rgba(99, 102, 241, 0.15)',
-                border: '1px solid rgba(99, 102, 241, 0.3)',
-                borderRadius: 'var(--radius-md)',
-                color: '#818cf8',
-                cursor: 'pointer',
-                fontSize: '1rem',
-              }}
-            >
-              ⚡
-            </button>
-          </div>
-        )}
-
-        {/* User Info / Logout */}
-        {!collapsed ? (
-          <div style={{ padding: '1rem 1.25rem', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
-              Logged in as <strong style={{ color: 'var(--color-text-primary)' }}>{user?.sub ? `${user.sub.slice(0, 8)}...` : 'User'}</strong>
-              <div style={{ fontSize: '0.7rem', color: 'var(--color-accent)' }}>Role: {user?.role || 'operator'}</div>
-            </div>
-            <button
-              onClick={handleLogout}
-              style={{
-                marginTop: '0.25rem',
-                padding: '0.375rem 0.75rem',
-                background: 'transparent',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--color-text-secondary)',
-                fontSize: '0.75rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                justifyContent: collapsed ? 'center' : 'center',
                 gap: '0.375rem',
-              }}
-            >
-              <span>🚪</span> Sign Out
-            </button>
-          </div>
-        ) : (
-          <div style={{ padding: '0.75rem 0', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                background: 'rgba(99,102,241,0.15)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.7rem',
-                fontWeight: 700,
-                color: 'var(--color-accent)',
-              }}
-              title={user?.sub || 'User'}
-            >
-              {user?.sub ? user.sub.charAt(0).toUpperCase() : 'U'}
-            </div>
-            <button
-              onClick={handleLogout}
-              title="Sign Out"
-              style={{
-                width: '32px',
-                height: '32px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                padding: collapsed ? '0.375rem' : '0.375rem',
                 background: 'transparent',
-                border: '1px solid var(--color-border)',
-                borderRadius: '6px',
-                color: 'var(--color-text-secondary)',
+                border: '1px solid #333340',
+                borderRadius: '2px',
+                color: '#8A8A96',
+                fontSize: '0.75rem',
+                fontWeight: 500,
                 cursor: 'pointer',
-                fontSize: '0.85rem',
+                fontFamily: 'var(--font-mono)',
               }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#6B7B99'; e.currentTarget.style.color = '#E0E0E0'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#333340'; e.currentTarget.style.color = '#8A8A96'; }}
             >
-              🚪
+              <Search size={13} />
+              {!collapsed && <span>INTEL LOOKUP</span>}
             </button>
           </div>
-        )}
-      </aside>
 
-      {/* ── Main Content Area ────────────────────────────────────────────── */}
-      <main style={{ flex: 1, padding: '2rem', overflowY: 'auto', minWidth: 0 }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>{children}</div>
-      </main>
+          {/* User / Logout */}
+          <div style={{ padding: collapsed ? '0.5rem 0' : '0.5rem 0.75rem', borderTop: '1px solid #333340' }}>
+            {collapsed ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.375rem' }}>
+                <div
+                  style={{
+                    width: '24px', height: '24px', borderRadius: '2px',
+                    background: '#2A2A32', border: '1px solid #333340',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.6rem', fontWeight: 700, color: '#6B7B99',
+                  }}
+                  title={user?.sub || 'User'}
+                >
+                  {user?.sub ? user.sub.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <button
+                  onClick={handleLogout}
+                  title="Sign Out"
+                  style={{
+                    width: '24px', height: '24px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'transparent', border: '1px solid #333340',
+                    borderRadius: '2px', color: '#555560', cursor: 'pointer',
+                  }}
+                >
+                  <LogOut size={11} />
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: '#555560' }}>
+                  <span style={{ color: '#8A8A96' }}>USER:</span> {user?.sub ? user.sub.slice(0, 12) : 'operator'}
+                  <span style={{ marginLeft: '0.5rem', color: '#6B7B99' }}>[{user?.role || 'operator'}]</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  title="Sign Out"
+                  style={{
+                    width: '22px', height: '22px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'transparent', border: '1px solid #333340',
+                    borderRadius: '2px', color: '#555560', cursor: 'pointer',
+                  }}
+                >
+                  <LogOut size={11} />
+                </button>
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* ── Main Content Area ────────────────────────────────────────── */}
+        <main style={{ flex: 1, padding: '1rem', overflowY: 'auto', minWidth: 0 }}>
+          {children}
+        </main>
+      </div>
 
       {/* ── Threat Intelligence Drawer ───────────────────────────────────── */}
       <ThreatIntelDrawer

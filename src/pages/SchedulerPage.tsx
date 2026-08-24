@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchSchedules, createSchedule, fetchActionTemplates } from '../lib/api';
 import type { Schedule, ActionTemplate } from '../lib/types';
+import { Plus, X, RefreshCw } from 'lucide-react';
 
 export default function SchedulerPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -16,9 +17,7 @@ export default function SchedulerPage() {
     interval_seconds: 3600,
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   async function loadData() {
     try {
@@ -55,118 +54,159 @@ export default function SchedulerPage() {
     }
   }
 
-  if (loading) return <div className="p-8 text-gray-400">Loading schedules...</div>;
-
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-white">Scheduler</h1>
-        <button
-          onClick={() => setShowCreate(!showCreate)}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          + New Schedule
-        </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#E0E0E0', margin: 0 }}>Scheduler</h1>
+          <p style={{ fontSize: '0.7rem', color: '#555560', fontFamily: 'var(--font-mono)', margin: '0.25rem 0 0' }}>
+            AUTOMATION TASKS // PERIODIC SCANS & INGESTION
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '0.375rem' }}>
+          <button onClick={loadData} className="btn" style={{ fontFamily: 'var(--font-mono)' }}>
+            <RefreshCw size={12} /> REFRESH
+          </button>
+          <button onClick={() => setShowCreate(!showCreate)} className="btn btn-primary" style={{ fontFamily: 'var(--font-mono)' }}>
+            <Plus size={12} /> NEW
+          </button>
+        </div>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-900/30 border border-red-700 rounded text-red-300">
-          {error}
-          <button onClick={() => setError(null)} className="ml-2 text-red-400 hover:text-red-300">✕</button>
+        <div style={{ padding: '0.5rem 0.75rem', background: 'rgba(211,47,47,0.1)', border: '1px solid #D32F2F', borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '0.75rem', color: '#D32F2F', fontFamily: 'var(--font-mono)' }}>{error}</span>
+          <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#D32F2F', cursor: 'pointer' }}>
+            <X size={12} />
+          </button>
         </div>
       )}
 
+      {/* Create Form */}
       {showCreate && (
-        <div className="mb-6 p-4 bg-gray-800 border border-gray-700 rounded-lg">
-          <h3 className="text-white font-semibold mb-3">Create Schedule</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              placeholder="Schedule name"
-              value={newSchedule.name}
-              onChange={(e) => setNewSchedule({ ...newSchedule, name: e.target.value })}
-              className="p-2 bg-gray-700 border border-gray-600 rounded text-white"
-            />
-            <select
-              value={newSchedule.connector_id}
-              onChange={(e) => setNewSchedule({ ...newSchedule, connector_id: e.target.value })}
-              className="p-2 bg-gray-700 border border-gray-600 rounded text-white"
-            >
-              <option value="wazuh">Wazuh</option>
-              <option value="velociraptor">Velociraptor</option>
-              <option value="shuffle">Shuffle</option>
-            </select>
-            <select
-              value={newSchedule.action_type}
-              onChange={(e) => setNewSchedule({ ...newSchedule, action_type: e.target.value })}
-              className="p-2 bg-gray-700 border border-gray-600 rounded text-white"
-            >
-              <option value="">Select action...</option>
-              {templates.map((t) => (
-                <option key={t.id} value={t.name}>{t.display_name}</option>
-              ))}
-            </select>
-            <select
-              value={newSchedule.trigger_type}
-              onChange={(e) => setNewSchedule({ ...newSchedule, trigger_type: e.target.value })}
-              className="p-2 bg-gray-700 border border-gray-600 rounded text-white"
-            >
-              <option value="interval">Interval</option>
-              <option value="cron">Cron</option>
-            </select>
-            {newSchedule.trigger_type === 'interval' && (
+        <div className="panel">
+          <div className="panel-header">
+            <span className="panel-title">CREATE SCHEDULE</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+            <div>
+              <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>NAME</label>
               <input
-                type="number"
-                placeholder="Interval (seconds)"
-                value={newSchedule.interval_seconds}
-                onChange={(e) => setNewSchedule({ ...newSchedule, interval_seconds: Number(e.target.value) })}
-                className="p-2 bg-gray-700 border border-gray-600 rounded text-white"
+                placeholder="schedule name"
+                value={newSchedule.name}
+                onChange={(e) => setNewSchedule({ ...newSchedule, name: e.target.value })}
+                className="input"
+                style={{ width: '100%', marginTop: '0.125rem' }}
               />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>CONNECTOR</label>
+              <select
+                value={newSchedule.connector_id}
+                onChange={(e) => setNewSchedule({ ...newSchedule, connector_id: e.target.value })}
+                className="input"
+                style={{ width: '100%', marginTop: '0.125rem' }}
+              >
+                <option value="wazuh">WAZUH</option>
+                <option value="velociraptor">VELOCIRAPTOR</option>
+                <option value="shuffle">SHUFFLE</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>ACTION</label>
+              <select
+                value={newSchedule.action_type}
+                onChange={(e) => setNewSchedule({ ...newSchedule, action_type: e.target.value })}
+                className="input"
+                style={{ width: '100%', marginTop: '0.125rem' }}
+              >
+                <option value="">SELECT...</option>
+                {templates.map((t) => <option key={t.id} value={t.name}>{t.display_name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>TRIGGER</label>
+              <select
+                value={newSchedule.trigger_type}
+                onChange={(e) => setNewSchedule({ ...newSchedule, trigger_type: e.target.value })}
+                className="input"
+                style={{ width: '100%', marginTop: '0.125rem' }}
+              >
+                <option value="interval">INTERVAL</option>
+                <option value="cron">CRON</option>
+              </select>
+            </div>
+            {newSchedule.trigger_type === 'interval' && (
+              <div>
+                <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>INTERVAL (SEC)</label>
+                <input
+                  type="number"
+                  value={newSchedule.interval_seconds}
+                  onChange={(e) => setNewSchedule({ ...newSchedule, interval_seconds: Number(e.target.value) })}
+                  className="input"
+                  style={{ width: '100%', marginTop: '0.125rem' }}
+                />
+              </div>
             )}
           </div>
-          <div className="flex gap-2 mt-4">
-            <button onClick={handleCreate} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Create</button>
-            <button onClick={() => setShowCreate(false)} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">Cancel</button>
+          <div style={{ display: 'flex', gap: '0.375rem', marginTop: '0.5rem' }}>
+            <button onClick={handleCreate} className="btn btn-primary" style={{ fontFamily: 'var(--font-mono)' }}>CREATE</button>
+            <button onClick={() => setShowCreate(false)} className="btn" style={{ fontFamily: 'var(--font-mono)' }}>CANCEL</button>
           </div>
         </div>
       )}
 
-      <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-900">
-            <tr>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Name</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Connector</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Action</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Status</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Next Run</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Last Run</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-700">
-            {schedules.map((s) => (
-              <tr key={s.id} className="hover:bg-gray-750">
-                <td className="px-4 py-3 text-white">{s.name}</td>
-                <td className="px-4 py-3 text-gray-300">{s.connector_id}</td>
-                <td className="px-4 py-3 text-gray-300">{s.action_type}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${s.enabled ? 'bg-green-900/50 text-green-300' : 'bg-gray-600 text-gray-400'}`}>
-                    {s.enabled ? 'Enabled' : 'Disabled'}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-gray-400 text-sm">
-                  {s.next_run_at ? new Date(s.next_run_at).toLocaleString() : '—'}
-                </td>
-                <td className="px-4 py-3 text-gray-400 text-sm">
-                  {s.last_run_at ? new Date(s.last_run_at).toLocaleString() : '—'}
-                </td>
+      {/* Schedules Table */}
+      {loading ? (
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#555560', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>LOADING...</div>
+      ) : (
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>NAME</th>
+                <th>CONNECTOR</th>
+                <th>ACTION</th>
+                <th>TRIGGER</th>
+                <th>STATUS</th>
+                <th>NEXT RUN</th>
+                <th>LAST RUN</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-        {schedules.length === 0 && (
-          <div className="p-8 text-center text-gray-500">No schedules configured</div>
-        )}
-      </div>
+            </thead>
+            <tbody>
+              {schedules.map((s) => (
+                <tr key={s.id}>
+                  <td style={{ fontWeight: 600, color: '#E0E0E0' }}>{s.name}</td>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#8A8A96' }}>{s.connector_id}</td>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#8A8A96' }}>{s.action_type}</td>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#555560' }}>
+                    {s.trigger && s.trigger.type === 'interval' ? `every ${(s.trigger as any).seconds}s` : (s.trigger as any)?.expression || '---'}
+                  </td>
+                  <td>
+                    <span className={`badge ${s.enabled ? 'badge-success' : 'badge-low'}`}>
+                      {s.enabled ? 'ACTIVE' : 'DISABLED'}
+                    </span>
+                  </td>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#555560' }}>
+                    {s.next_run_at ? new Date(s.next_run_at).toLocaleString('en-US', { hour12: false }) : '---'}
+                  </td>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#555560' }}>
+                    {s.last_run_at ? new Date(s.last_run_at).toLocaleString('en-US', { hour12: false }) : '---'}
+                  </td>
+                </tr>
+              ))}
+              {schedules.length === 0 && (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: 'center', color: '#555560', padding: '1.5rem', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
+                    NO SCHEDULES CONFIGURED
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
