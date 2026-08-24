@@ -1,40 +1,19 @@
-/**
- * src/pages/VelociraptorPage.tsx
- *
- * Velociraptor VQL Shell — a terminal-style interface for running VQL queries
- * against the Velociraptor server (server scope), plus a browsable artifact
- * list and quick-start templates.
- *
- * Gated to admins: arbitrary VQL can read any server-side data, so every
- * execution is audit-logged by the core API.
- */
-
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { ErrorDisplay } from '../components/ErrorDisplay';
 import { fetchVeloArtifacts, fetchVeloClients, runVqlQuery } from '../lib/api';
 import type { VqlArtifact, VqlClient, VqlQueryResponse } from '../lib/types';
+import { Terminal, Code2, Play, Search, Monitor, Box, Command, Shield, Server, FileJson, Table, ChevronRight, History, RefreshCw } from 'lucide-react';
 
 const TEMPLATES = [
-  {
-    label: 'List clients',
-    vql: "SELECT client_id, os_info.hostname AS hostname, os_info.system AS os, os_info.architecture AS arch, client_version, last_seen_at FROM clients()",
-  },
-  {
-    label: 'Server info',
-    vql: 'SELECT * FROM info()',
-  },
-  {
-    label: 'Processes (local)',
-    vql: 'SELECT * FROM Artifact.Linux.Sys.Pslist()',
-  },
-  {
-    label: 'Flows (per client)',
-    vql: 'SELECT flow_id, client_id, state FROM flows(client_id="")',
-  },
+  { label: 'List clients', vql: "SELECT client_id, os_info.hostname AS hostname, os_info.system AS os, os_info.architecture AS arch, client_version, last_seen_at FROM clients()" },
+  { label: 'Server info', vql: 'SELECT * FROM info()' },
+  { label: 'Processes (local)', vql: 'SELECT * FROM Artifact.Linux.Sys.Pslist()' },
+  { label: 'Flows (per client)', vql: 'SELECT flow_id, client_id, state FROM flows(client_id="")' },
 ];
 
 type ShellOs = 'auto' | 'linux' | 'windows' | 'macos';
+type Tab = 'vql' | 'shell';
 
 const LINUX_SHELL_ARTIFACT = 'Linux.Sys.BashShell';
 const WINDOWS_SHELL_ARTIFACTS = {
@@ -60,23 +39,25 @@ function escapeVqlString(value: string): string {
 }
 
 function buildShellQuery(artifact: string, command: string): string {
-  // Stateful='N' forces one-shot execution: the interactive session (Stateful=Y)
-  // would otherwise hold the flow until the session timeout.
   return `SELECT * FROM Artifact.${artifact}(Command='${escapeVqlString(command)}', Stateful='N')`;
 }
 
 function renderCell(value: unknown): string {
-  if (value === null || value === undefined) return '';
+  if (value === null || value === undefined) return '--';
   if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
 }
 
 export default function VelociraptorPage() {
+  const [activeTab, setActiveTab] = useState<Tab>('vql');
+
+  // Data state
   const [clients, setClients] = useState<VqlClient[]>([]);
   const [artifacts, setArtifacts] = useState<VqlArtifact[]>([]);
   const [artifactsLoading, setArtifactsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // VQL Studio state
   const [vql, setVql] = useState<string>('');
   const [selectedClient, setSelectedClient] = useState<string>('');
   const [running, setRunning] = useState(false);
@@ -84,16 +65,21 @@ export default function VelociraptorPage() {
   const [viewMode, setViewMode] = useState<'table' | 'json'>('table');
   const [artifactFilter, setArtifactFilter] = useState('');
 
-  // Quick shell (remote command runner) state.
+  // Quick Shell state
   const [shellOs, setShellOs] = useState<ShellOs>('auto');
   const [shellCmd, setShellCmd] = useState('');
   const [winShell, setWinShell] = useState<'cmd' | 'powershell'>('cmd');
+  const [shellRunning, setShellRunning] = useState(false);
+  const [shellResult, setShellResult] = useState<VqlQueryResponse | null>(null);
 
-  // Command history for the shell (Up/Down arrows).
+  // History state
   const [history, setHistory] = useState<string[]>([]);
   const [historyIdx, setHistoryIdx] = useState<number>(-1);
+  
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const shellInputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const shellResultsRef = useRef<HTMLDivElement>(null);
 
   const loadData = useCallback(async () => {
     setError(null);
@@ -120,6 +106,12 @@ export default function VelociraptorPage() {
       resultsRef.current.scrollTop = resultsRef.current.scrollHeight;
     }
   }, [result]);
+
+  useEffect(() => {
+    if (shellResult && shellResultsRef.current) {
+      shellResultsRef.current.scrollTop = shellResultsRef.current.scrollHeight;
+    }
+  }, [shellResult]);
 
   const columns = useMemo(() => {
     if (!result) return [];
@@ -152,7 +144,7 @@ export default function VelociraptorPage() {
     return null;
   }, [effectiveOs, winShell]);
 
-  const execute = useCallback(
+  const executeVql = useCallback(
     async (query: string) => {
       const trimmed = query.trim();
       if (!trimmed || running) return;
@@ -181,7 +173,7 @@ export default function VelociraptorPage() {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      execute(vql);
+      executeVql(vql);
     } else if (e.key === 'ArrowUp' && history.length > 0) {
       e.preventDefault();
       const next = historyIdx < 0 ? history.length - 1 : Math.max(0, historyIdx - 1);
@@ -200,479 +192,251 @@ export default function VelociraptorPage() {
     }
   };
 
-  const runShellCommand = useCallback(() => {
+  const runShellCommand = useCallback(async () => {
     if (!selectedClient) {
       setError('Select a client to run shell commands.');
       return;
     }
-    if (!shellCmd.trim()) return;
+    if (!shellCmd.trim() || shellRunning) return;
     if (!shellArtifact) {
-      setError(
-        effectiveOs === 'macos'
-          ? 'No shell artifact for macOS in this Velociraptor build (Linux.Sys.* / Windows.System.* only).'
-          : 'No shell artifact for the selected platform.'
-      );
+      setError(effectiveOs === 'macos' ? 'No shell artifact for macOS.' : 'No shell artifact for platform.');
       return;
     }
-    const query = buildShellQuery(shellArtifact, shellCmd);
-    setVql(query);
-    void execute(query);
-  }, [selectedClient, shellCmd, shellArtifact, effectiveOs, execute]);
-
-  const insertArtifact = (name: string) => {
-    setVql(`SELECT * FROM Artifact.${name}()`);
-    inputRef.current?.focus();
-  };
-
-  const insertTemplate = (template: string) => {
-    setVql(template);
-    inputRef.current?.focus();
-  };
+    
+    setShellRunning(true);
+    setShellResult(null);
+    setError(null);
+    
+    try {
+      const query = buildShellQuery(shellArtifact, shellCmd);
+      const res = await runVqlQuery({ vql: query, client_id: selectedClient });
+      setShellResult(res);
+      setShellCmd(''); // clear on success
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Command failed');
+    } finally {
+      setShellRunning(false);
+    }
+  }, [selectedClient, shellCmd, shellArtifact, effectiveOs, shellRunning]);
 
   return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: 0 }}>Velociraptor VQL Shell</h1>
-            <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-              Run VQL queries against the Velociraptor server. Enter runs, Shift+Enter is a new line, ↑/↓ browses history.
-            </p>
+    <div className="flex flex-col h-full overflow-hidden bg-[#0F0F13]">
+      
+      {/* Header Area */}
+      <div className="flex-none px-6 py-4 border-b border-[#333340] bg-[#18181c]">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+              <Shield className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-gray-100 m-0">Velociraptor Shell</h1>
+              <p className="text-xs font-mono text-gray-500 mt-0.5 tracking-wide uppercase">Advanced Endpoint Query Interface</p>
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <span
-              style={{
-                padding: '0.25rem 0.75rem',
-                borderRadius: '999px',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                color: 'var(--color-accent)',
-                border: '1px solid var(--color-accent)',
-              }}
-            >
-              Server + Client Scope
-            </span>
-            <span
-              style={{
-                padding: '0.25rem 0.75rem',
-                borderRadius: '999px',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                color: 'var(--color-warning)',
-                border: '1px solid var(--color-warning)',
-              }}
-            >
-              Admin Gated
+
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 tracking-wider">
+              <Server size={12} />
+              SERVER + CLIENT SCOPE
             </span>
           </div>
         </div>
+      </div>
 
-        {error && <ErrorDisplay message={error} onRetry={() => { setError(null); loadData(); }} />}
+      {error && (
+        <div className="flex-none mx-6 mt-4">
+          <ErrorDisplay message={error} onRetry={() => { setError(null); loadData(); }} />
+        </div>
+      )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '1.25rem', alignItems: 'start' }}>
-          {/* ── Artifact Browser ─────────────────────────────────────────────── */}
-          <div
-            style={{
-              background: 'var(--color-bg-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              padding: '1rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem',
-              maxHeight: '70vh',
-            }}
+      {/* Tabs */}
+      <div className="flex-none px-6 mt-4 border-b border-[#333340]">
+        <div className="flex gap-6">
+          <button
+            onClick={() => setActiveTab('vql')}
+            className={`pb-3 text-sm font-semibold transition-colors relative ${activeTab === 'vql' ? 'text-emerald-400' : 'text-gray-500 hover:text-gray-300'}`}
           >
-            <div>
-              <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Artifacts</h2>
-              <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', margin: '0.25rem 0 0' }}>
-                Click to insert a query. {artifacts.length} available.
-              </p>
+            <div className="flex items-center gap-2">
+              <Code2 size={16} />
+              VQL Studio
             </div>
-            <input
-              type="text"
-              placeholder="Filter artifacts…"
-              value={artifactFilter}
-              onChange={(e) => setArtifactFilter(e.target.value)}
-              style={{
-                padding: '0.5rem 0.75rem',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--color-border)',
-                background: 'var(--color-bg-base)',
-                color: 'var(--color-text-primary)',
-                fontSize: '0.8rem',
-                fontFamily: 'monospace',
-              }}
-            />
-            <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
-              {artifactsLoading ? (
-                <LoadingSkeleton count={8} height="1.5rem" />
-              ) : filteredArtifacts.length === 0 ? (
-                <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>No artifacts match.</p>
-              ) : (
-                filteredArtifacts.map((a) => (
-                  <button
-                    key={a.name}
-                    onClick={() => insertArtifact(a.name)}
-                    title={a.description ?? a.name}
-                    style={{
-                      textAlign: 'left',
-                      background: 'transparent',
-                      border: 'none',
-                      padding: '0.4rem 0.5rem',
-                      borderRadius: 'var(--radius-sm)',
-                      color: 'var(--color-text-primary)',
-                      fontSize: '0.78rem',
-                      fontFamily: 'monospace',
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'var(--color-bg-base)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
-                    }}
-                  >
-                    {a.name}
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* ── Shell ───────────────────────────────────────────────────────── */}
-          <div
-            style={{
-              background: 'var(--color-bg-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              padding: '1rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem',
-            }}
+            {activeTab === 'vql' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />}
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('shell')}
+            className={`pb-3 text-sm font-semibold transition-colors relative ${activeTab === 'shell' ? 'text-amber-400' : 'text-gray-500 hover:text-gray-300'}`}
           >
-            {/* Template chips */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
-              {TEMPLATES.map((t) => (
-                <button
-                  key={t.label}
-                  onClick={() => insertTemplate(t.vql)}
-                  style={{
-                    padding: '0.25rem 0.625rem',
-                    fontSize: '0.72rem',
-                    borderRadius: '999px',
-                    border: '1px solid var(--color-border)',
-                    background: 'var(--color-bg-base)',
-                    color: 'var(--color-text-secondary)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {t.label}
-                </button>
-              ))}
+            <div className="flex items-center gap-2">
+              <Terminal size={16} />
+              Quick Shell
             </div>
+            {activeTab === 'shell' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />}
+          </button>
+        </div>
+      </div>
 
-            {/* Client scope selector (metadata / dispatch hint) */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem' }}>
-              <label style={{ color: 'var(--color-text-secondary)', fontWeight: 600 }}>
-                Client scope
-              </label>
-              <select
-                value={selectedClient}
-                onChange={(e) => setSelectedClient(e.target.value)}
-                style={{
-                  flex: 1,
-                  padding: '0.375rem 0.5rem',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--color-border)',
-                  background: 'var(--color-bg-base)',
-                  color: 'var(--color-text-primary)',
-                  fontSize: '0.8rem',
-                  fontFamily: 'monospace',
-                }}
-              >
-                <option value="">— server scope —</option>
-                {clients.map((c) => (
-                  <option key={c.client_id} value={c.client_id}>
-                    {c.hostname ?? c.client_id} ({c.os ?? '?'}) {c.client_id}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* ── Quick Shell (remote command runner) ─────────────────────────── */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.5rem',
-                border: '1px dashed var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                padding: '0.75rem',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>Quick Shell</span>
-                <span
-                  style={{
-                    fontSize: '0.72rem',
-                    color: shellArtifact ? 'var(--color-accent)' : 'var(--color-warning)',
-                    fontFamily: 'monospace',
-                  }}
-                >
-                  {shellArtifact ?? (effectiveOs === 'macos' ? 'no macOS shell artifact' : 'select a client')}
-                </span>
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-hidden">
+        {activeTab === 'vql' && (
+          <div className="flex h-full p-6 gap-6">
+            
+            {/* Artifact Browser Sidebar */}
+            <div className="w-80 flex flex-col bg-[#141419] border border-[#333340] rounded-xl overflow-hidden shadow-xl">
+              <div className="p-4 border-b border-[#333340] bg-[#18181c]">
+                <h2 className="text-sm font-bold text-gray-200 flex items-center gap-2">
+                  <Box size={14} className="text-emerald-500" />
+                  Artifact Browser
+                </h2>
+                <div className="mt-3 relative">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Filter artifacts..."
+                    value={artifactFilter}
+                    onChange={(e) => setArtifactFilter(e.target.value)}
+                    className="w-full pl-9 pr-3 py-1.5 bg-[#0F0F13] border border-[#333340] rounded-md text-xs font-mono text-gray-300 focus:outline-none focus:border-emerald-500/50 transition-colors"
+                  />
+                </div>
               </div>
-
-              <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <label style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', fontWeight: 600 }}>OS</label>
-                {(['auto', 'linux', 'windows', 'macos'] as ShellOs[]).map((os) => (
-                  <button
-                    key={os}
-                    onClick={() => setShellOs(os)}
-                    style={{
-                      padding: '0.2rem 0.625rem',
-                      fontSize: '0.72rem',
-                      borderRadius: '999px',
-                      border: '1px solid var(--color-border)',
-                      background: shellOs === os ? 'var(--color-accent)' : 'var(--color-bg-base)',
-                      color: shellOs === os ? '#0B1B33' : 'var(--color-text-secondary)',
-                      fontWeight: shellOs === os ? 700 : 500,
-                      cursor: 'pointer',
-                      textTransform: 'capitalize',
-                    }}
-                  >
-                    {os}
-                  </button>
-                ))}
-              </div>
-
-              {effectiveOs === 'windows' && (
-                <select
-                  value={winShell}
-                  onChange={(e) => setWinShell(e.target.value as 'cmd' | 'powershell')}
-                  style={{
-                    padding: '0.375rem 0.5rem',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--color-border)',
-                    background: 'var(--color-bg-base)',
-                    color: 'var(--color-text-primary)',
-                    fontSize: '0.78rem',
-                    fontFamily: 'monospace',
-                  }}
-                >
-                  <option value="cmd">Cmd — Windows.System.CmdShell</option>
-                  <option value="powershell">PowerShell — Windows.System.PowerShell</option>
-                </select>
-              )}
-
-              {effectiveOs !== 'macos' && (
-                <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
-                  {SHELL_QUICK_COMMANDS[effectiveOs === 'windows' ? 'windows' : 'linux'].map((c) => (
+              <div className="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-[#333340] scrollbar-track-transparent">
+                {artifactsLoading ? (
+                  <div className="p-2"><LoadingSkeleton count={8} height="24px" /></div>
+                ) : filteredArtifacts.length === 0 ? (
+                  <div className="p-4 text-center text-xs text-gray-500 font-mono">No artifacts found</div>
+                ) : (
+                  filteredArtifacts.map((a) => (
                     <button
-                      key={c}
-                      onClick={() => setShellCmd(c)}
-                      style={{
-                        padding: '0.2rem 0.625rem',
-                        fontSize: '0.72rem',
-                        borderRadius: '999px',
-                        border: '1px solid var(--color-border)',
-                        background: 'var(--color-bg-base)',
-                        color: 'var(--color-text-secondary)',
-                        fontFamily: 'monospace',
-                        cursor: 'pointer',
+                      key={a.name}
+                      onClick={() => {
+                        setVql(`SELECT * FROM Artifact.${a.name}()`);
+                        inputRef.current?.focus();
                       }}
+                      title={a.description ?? a.name}
+                      className="w-full text-left px-3 py-1.5 text-[11px] font-mono text-gray-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-md transition-colors truncate"
                     >
-                      {c}
+                      {a.name}
                     </button>
-                  ))}
-                </div>
-              )}
-
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <input
-                  type="text"
-                  value={shellCmd}
-                  onChange={(e) => setShellCmd(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') runShellCommand();
-                  }}
-                  placeholder={effectiveOs === 'windows' ? 'e.g. whoami /all' : 'e.g. id && hostname'}
-                  spellCheck={false}
-                  style={{
-                    flex: 1,
-                    padding: '0.5rem 0.75rem',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--color-border)',
-                    background: 'var(--color-bg-base)',
-                    color: 'var(--color-text-primary)',
-                    fontSize: '0.82rem',
-                    fontFamily: 'monospace',
-                  }}
-                />
-                <button
-                  onClick={runShellCommand}
-                  disabled={running || !shellCmd.trim() || !shellArtifact || !selectedClient}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    borderRadius: 'var(--radius-sm)',
-                    border: 'none',
-                    background: 'var(--color-accent)',
-                    color: '#0B1B33',
-                    fontWeight: 700,
-                    fontSize: '0.8rem',
-                    cursor: running || !shellCmd.trim() || !shellArtifact || !selectedClient ? 'not-allowed' : 'pointer',
-                    opacity: running || !shellCmd.trim() || !shellArtifact || !selectedClient ? 0.55 : 1,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  Run on client
-                </button>
-              </div>
-
-              {effectiveOs === 'macos' && (
-                <p style={{ fontSize: '0.75rem', color: 'var(--color-warning)', margin: 0 }}>
-                  Velociraptor 0.77 ships no macOS shell artifact (Linux.Sys.* and Windows.System.* only). Use the artifact browser for generic collection.
-                </p>
-              )}
-            </div>
-
-            {/* Query input */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <textarea
-                ref={inputRef}
-                value={vql}
-                onChange={(e) => setVql(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={"SELECT * FROM clients()"}
-                rows={3}
-                spellCheck={false}
-                style={{
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  padding: '0.625rem 0.75rem',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--color-border)',
-                  background: 'var(--color-bg-base)',
-                  color: 'var(--color-text-primary)',
-                  fontSize: '0.85rem',
-                  fontFamily: 'monospace',
-                  lineHeight: 1.5,
-                  resize: 'vertical',
-                }}
-              />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <button
-                    onClick={() => execute(vql)}
-                    disabled={running || !vql.trim()}
-                    style={{
-                      padding: '0.5rem 1.25rem',
-                      borderRadius: 'var(--radius-sm)',
-                      border: 'none',
-                      background: 'var(--color-accent)',
-                      color: '#0B1B33',
-                      fontWeight: 700,
-                      fontSize: '0.85rem',
-                      cursor: running ? 'progress' : 'pointer',
-                      opacity: running || !vql.trim() ? 0.6 : 1,
-                    }}
-                  >
-                    {running ? 'Running…' : '▶ Run Query'}
-                  </button>
-                  <button
-                    onClick={() => setViewMode(viewMode === 'table' ? 'json' : 'table')}
-                    disabled={!result || result.rows.length === 0}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--color-border)',
-                      background: 'transparent',
-                      color: 'var(--color-text-secondary)',
-                      fontSize: '0.8rem',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    View: {viewMode === 'table' ? 'JSON' : 'Table'}
-                  </button>
-                </div>
-                {result && (
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', fontFamily: 'monospace' }}>
-                    {result.rows.length} row{result.rows.length === 1 ? '' : 's'} · {result.elapsed_ms} ms
-                    {result.truncated ? ' · truncated at 500' : ''}
-                  </span>
+                  ))
                 )}
               </div>
             </div>
 
-            {/* Results */}
-            <div
-              ref={resultsRef}
-              style={{
-                minHeight: '280px',
-                maxHeight: '60vh',
-                overflowY: 'auto',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                background: 'var(--color-bg-base)',
-              }}
-            >
-              {!result && !running && (
-                <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem', fontFamily: 'monospace', padding: '1rem', margin: 0 }}>
-                  No results yet — run a query above, or click an artifact.
-                </p>
-              )}
-              {running && (
-                <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem', fontFamily: 'monospace', padding: '1rem', margin: 0 }}>
-                  Executing…
-                </p>
-              )}
-              {result && result.rows.length === 0 && !running && (
-                <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem', fontFamily: 'monospace', padding: '1rem', margin: 0 }}>
-                  Query returned 0 rows.
-                </p>
-              )}
-              {result && result.rows.length > 0 && viewMode === 'table' && (
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ borderCollapse: 'collapse', fontSize: '0.78rem', fontFamily: 'monospace', minWidth: '100%' }}>
-                    <thead>
+            {/* VQL Editor & Results */}
+            <div className="flex-1 flex flex-col min-w-0 bg-[#141419] border border-[#333340] rounded-xl overflow-hidden shadow-xl">
+              
+              {/* Editor Toolbar */}
+              <div className="flex items-center justify-between p-3 border-b border-[#333340] bg-[#18181c]">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Monitor size={14} className="text-gray-500" />
+                    <select
+                      value={selectedClient}
+                      onChange={(e) => setSelectedClient(e.target.value)}
+                      className="bg-[#0F0F13] border border-[#333340] rounded-md px-2 py-1 text-xs font-mono text-gray-300 focus:outline-none focus:border-emerald-500/50"
+                    >
+                      <option value="">— Server Scope —</option>
+                      {clients.map((c) => (
+                        <option key={c.client_id} value={c.client_id}>
+                          {c.hostname ?? c.client_id} ({c.os ?? '?'})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="h-4 w-px bg-[#333340]" />
+                  
+                  <div className="flex gap-2">
+                    {TEMPLATES.map((t) => (
+                      <button
+                        key={t.label}
+                        onClick={() => { setVql(t.vql); inputRef.current?.focus(); }}
+                        className="px-2 py-1 text-[10px] font-medium tracking-wide text-gray-400 hover:text-emerald-400 bg-[#252530] hover:bg-[#2a2a35] rounded transition-colors"
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {result && (
+                    <span className="text-[10px] font-mono text-gray-500 flex items-center gap-1">
+                      <History size={12} />
+                      {result.rows.length} rows · {result.elapsed_ms}ms
+                      {result.truncated && ' (trunc)'}
+                    </span>
+                  )}
+                  <div className="flex bg-[#0F0F13] border border-[#333340] rounded-md overflow-hidden">
+                    <button
+                      onClick={() => setViewMode('table')}
+                      className={`px-3 py-1 flex items-center gap-1.5 text-[10px] font-bold tracking-wider transition-colors ${viewMode === 'table' ? 'bg-slate-700 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                    >
+                      <Table size={12} /> TABLE
+                    </button>
+                    <button
+                      onClick={() => setViewMode('json')}
+                      className={`px-3 py-1 flex items-center gap-1.5 text-[10px] font-bold tracking-wider transition-colors ${viewMode === 'json' ? 'bg-slate-700 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                    >
+                      <FileJson size={12} /> JSON
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Editor */}
+              <div className="relative border-b border-[#333340]">
+                <textarea
+                  ref={inputRef}
+                  value={vql}
+                  onChange={(e) => setVql(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="SELECT * FROM clients()&#10;-- Press Enter to run, Shift+Enter for newline, ↑/↓ for history"
+                  className="w-full p-4 bg-[#0F0F13] text-sm font-mono text-emerald-300 placeholder-gray-600 focus:outline-none resize-none h-32"
+                  spellCheck={false}
+                />
+                <div className="absolute bottom-4 right-4">
+                  <button
+                    onClick={() => executeVql(vql)}
+                    disabled={running || !vql.trim()}
+                    className="flex items-center gap-2 px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-[#333340] disabled:text-gray-500 text-[#0F0F13] text-xs font-bold rounded shadow-lg transition-all"
+                  >
+                    {running ? <RefreshCw size={12} className="animate-spin" /> : <Play size={12} className="fill-current" />}
+                    {running ? 'EXECUTING...' : 'RUN QUERY'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Results */}
+              <div ref={resultsRef} className="flex-1 overflow-auto bg-[#18181c] p-4 relative">
+                {!result && !running && (
+                  <div className="absolute inset-0 flex items-center justify-center text-gray-600 font-mono text-xs flex-col gap-2">
+                    <Code2 size={32} className="opacity-50" />
+                    Awaiting Query Execution
+                  </div>
+                )}
+                
+                {result && result.rows.length === 0 && !running && (
+                  <div className="text-gray-500 font-mono text-xs">Query executed successfully (0 rows returned)</div>
+                )}
+
+                {result && result.rows.length > 0 && viewMode === 'table' && (
+                  <table className="w-full text-left border-collapse">
+                    <thead className="sticky top-0 bg-[#18181c] shadow-md z-10">
                       <tr>
                         {columns.map((c) => (
-                          <th
-                            key={c}
-                            style={{
-                              textAlign: 'left',
-                              padding: '0.5rem 0.75rem',
-                              borderBottom: '1px solid var(--color-border)',
-                              color: 'var(--color-accent)',
-                              whiteSpace: 'nowrap',
-                              position: 'sticky',
-                              top: 0,
-                              background: 'var(--color-bg-base)',
-                            }}
-                          >
+                          <th key={c} className="px-4 py-2 text-[10px] font-bold text-emerald-500 uppercase tracking-wider border-b border-[#333340] whitespace-nowrap">
                             {c}
                           </th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-[#252530]">
                       {result.rows.map((row, i) => (
-                        <tr key={i}>
+                        <tr key={i} className="hover:bg-[#1a1a22] transition-colors group">
                           {columns.map((c) => (
-                            <td
-                              key={c}
-                              style={{
-                                padding: '0.375rem 0.75rem',
-                                borderBottom: '1px solid var(--color-border)',
-                                color: 'var(--color-text-primary)',
-                                maxWidth: '320px',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
+                            <td key={c} className="px-4 py-2 text-[11px] font-mono text-gray-300 max-w-xs truncate group-hover:text-gray-100">
                               {renderCell(row[c])}
                             </td>
                           ))}
@@ -680,26 +444,148 @@ export default function VelociraptorPage() {
                       ))}
                     </tbody>
                   </table>
-                </div>
-              )}
-              {result && result.rows.length > 0 && viewMode === 'json' && (
-                <pre
-                  style={{
-                    margin: 0,
-                    padding: '1rem',
-                    fontSize: '0.75rem',
-                    fontFamily: 'monospace',
-                    color: 'var(--color-text-primary)',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
-                  }}
-                >
-                  {JSON.stringify(result.rows, null, 2)}
-                </pre>
-              )}
+                )}
+
+                {result && result.rows.length > 0 && viewMode === 'json' && (
+                  <pre className="text-[11px] font-mono text-emerald-400/90 whitespace-pre-wrap word-break-all">
+                    {JSON.stringify(result.rows, null, 2)}
+                  </pre>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {activeTab === 'shell' && (
+          <div className="h-full p-6 flex justify-center">
+            <div className="w-full max-w-4xl flex flex-col bg-[#141419] border border-[#333340] rounded-xl overflow-hidden shadow-2xl">
+              
+              {/* Terminal Header */}
+              <div className="flex items-center justify-between p-4 bg-[#18181c] border-b border-[#333340]">
+                <div className="flex items-center gap-3">
+                  <Terminal size={18} className="text-amber-500" />
+                  <div>
+                    <h2 className="text-sm font-bold text-gray-200">Interactive Remote Shell</h2>
+                    <p className="text-[10px] font-mono text-gray-500 uppercase">Execute commands directly on endpoint</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase">Target</span>
+                    <select
+                      value={selectedClient}
+                      onChange={(e) => setSelectedClient(e.target.value)}
+                      className="bg-[#0F0F13] border border-[#333340] rounded-md px-3 py-1.5 text-xs font-mono text-amber-500 focus:outline-none focus:border-amber-500/50"
+                    >
+                      <option value="" disabled>Select Endpoint...</option>
+                      {clients.map((c) => (
+                        <option key={c.client_id} value={c.client_id}>
+                          {c.hostname ?? c.client_id}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="h-6 w-px bg-[#333340]" />
+                  
+                  <div className="flex bg-[#0F0F13] border border-[#333340] p-1 rounded-md">
+                    {(['auto', 'linux', 'windows', 'macos'] as ShellOs[]).map((os) => (
+                      <button
+                        key={os}
+                        onClick={() => setShellOs(os)}
+                        className={`px-3 py-1 text-[10px] font-bold uppercase rounded transition-colors ${shellOs === os ? 'bg-amber-500 text-[#0F0F13]' : 'text-gray-500 hover:text-gray-300'}`}
+                      >
+                        {os}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Terminal Body */}
+              <div className="flex-1 flex flex-col bg-[#0A0A0C] p-4 relative font-mono text-[13px]">
+                
+                {/* Warning / Status */}
+                <div className="mb-4 flex items-start gap-2 text-amber-500/80 bg-amber-500/10 p-3 rounded-lg border border-amber-500/20 text-[11px]">
+                  <Command size={14} className="mt-0.5 shrink-0" />
+                  <div>
+                    Warning: Commands execute as SYSTEM/root. All actions are logged and audited.
+                    {effectiveOs === 'macos' && (
+                      <span className="block mt-1 text-red-400">Error: No macOS shell artifact available in this deployment.</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Quick commands */}
+                {effectiveOs !== 'macos' && (
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {SHELL_QUICK_COMMANDS[effectiveOs === 'windows' ? 'windows' : 'linux'].map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => { setShellCmd(c); shellInputRef.current?.focus(); }}
+                        className="px-2.5 py-1 bg-[#1a1a22] border border-[#333340] hover:border-amber-500/50 text-gray-400 hover:text-amber-400 rounded text-[11px] transition-colors"
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Terminal output */}
+                <div ref={shellResultsRef} className="flex-1 overflow-y-auto mb-4 text-gray-300 whitespace-pre-wrap">
+                  {shellResult && shellResult.rows.map((row, idx) => (
+                    <div key={idx} className="mb-2">
+                      <div className="text-gray-500 mb-1">[{selectedClientObj?.hostname ?? selectedClient}] $ {(row as any).Command ?? 'Output:'}</div>
+                      <div className="text-gray-200">{(row as any).Stdout}</div>
+                      {(row as any).Stderr && <div className="text-red-400 mt-1">{(row as any).Stderr}</div>}
+                    </div>
+                  ))}
+                  {shellRunning && <div className="text-amber-400 animate-pulse">Executing command on remote endpoint...</div>}
+                </div>
+
+                {/* Terminal Input */}
+                <div className="flex items-center gap-2 mt-auto pt-4 border-t border-[#333340]">
+                  <ChevronRight size={16} className="text-amber-500 shrink-0" />
+                  <input
+                    ref={shellInputRef}
+                    type="text"
+                    value={shellCmd}
+                    onChange={(e) => setShellCmd(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') runShellCommand();
+                    }}
+                    placeholder={!selectedClient ? 'Select a client first...' : 'Enter shell command...'}
+                    disabled={!selectedClient || shellRunning || effectiveOs === 'macos'}
+                    className="flex-1 bg-transparent text-amber-100 placeholder-gray-600 focus:outline-none disabled:opacity-50"
+                    spellCheck={false}
+                  />
+                  
+                  {effectiveOs === 'windows' && (
+                    <select
+                      value={winShell}
+                      onChange={(e) => setWinShell(e.target.value as 'cmd' | 'powershell')}
+                      className="bg-[#18181c] border border-[#333340] rounded px-2 py-1 text-[10px] text-gray-400 focus:outline-none"
+                    >
+                      <option value="cmd">CMD</option>
+                      <option value="powershell">PS</option>
+                    </select>
+                  )}
+                  
+                  <button
+                    onClick={runShellCommand}
+                    disabled={!shellCmd.trim() || !selectedClient || shellRunning || effectiveOs === 'macos'}
+                    className="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 disabled:bg-[#333340] disabled:text-gray-500 text-[#0F0F13] text-xs font-bold rounded transition-all"
+                  >
+                    SEND
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+    </div>
   );
 }
