@@ -61,7 +61,7 @@ export default function CasesPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: 0 }}>Incident Cases</h1>
-            <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+            <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.875rem', marginTop: '0.25rem' }}>
               Track investigations, assign tasks, and link security evidence.
             </p>
           </div>
@@ -103,7 +103,7 @@ export default function CasesPage() {
                 style={{
                   padding: '1.25rem',
                   borderRadius: 'var(--radius-lg)',
-                  background: 'var(--color-bg-surface)',
+                  background: 'var(--color-bg-[var(--sys-bg-surface)])',
                   border: '1px solid var(--color-border)',
                   cursor: 'pointer',
                   display: 'flex',
@@ -114,7 +114,7 @@ export default function CasesPage() {
               >
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.375rem' }}>
-                    <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                    <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-[var(--sys-text-primary)])' }}>
                       {c.title}
                     </span>
                     <span
@@ -131,14 +131,14 @@ export default function CasesPage() {
                       {c.status}
                     </span>
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-[var(--sys-text-secondary)])' }}>
                     ID: <code style={{ color: 'var(--color-accent)' }}>{c.id}</code> &bull; Created: {new Date(c.created_at).toLocaleString()}
                   </div>
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
-                    Assigned: <strong style={{ color: 'var(--color-text-primary)' }}>{c.assigned_to ? `${c.assigned_to.slice(0, 8)}...` : 'Unassigned'}</strong>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-[var(--sys-text-secondary)])' }}>
+                    Assigned: <strong style={{ color: 'var(--color-text-[var(--sys-text-primary)])' }}>{c.assigned_to ? `${c.assigned_to.slice(0, 8)}...` : 'Unassigned'}</strong>
                   </div>
                   <span style={{ fontSize: '0.875rem', color: 'var(--color-accent)' }}>View Case →</span>
                 </div>
@@ -168,7 +168,7 @@ export default function CasesPage() {
               style={{
                 width: '100%',
                 maxWidth: '460px',
-                background: 'var(--color-bg-surface)',
+                background: 'var(--color-bg-[var(--sys-bg-surface)])',
                 border: '1px solid var(--color-border)',
                 borderRadius: 'var(--radius-lg)',
                 padding: '2rem',
@@ -190,9 +190,9 @@ export default function CasesPage() {
                       width: '100%',
                       padding: '0.625rem 0.875rem',
                       borderRadius: 'var(--radius-md)',
-                      background: 'var(--color-bg-base)',
+                      background: 'var(--color-bg-[var(--sys-bg-base)])',
                       border: '1px solid var(--color-border)',
-                      color: 'var(--color-text-primary)',
+                      color: 'var(--color-text-[var(--sys-text-primary)])',
                       fontSize: '0.875rem',
                     }}
                   />
@@ -207,7 +207,7 @@ export default function CasesPage() {
                       background: 'transparent',
                       border: '1px solid var(--color-border)',
                       borderRadius: 'var(--radius-md)',
-                      color: 'var(--color-text-secondary)',
+                      color: 'var(--color-text-[var(--sys-text-secondary)])',
                       cursor: 'pointer',
                     }}
                   >

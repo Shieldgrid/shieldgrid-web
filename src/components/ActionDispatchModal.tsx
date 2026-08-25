@@ -68,7 +68,7 @@ export const ActionDispatchModal: React.FC<ActionDispatchModalProps> = ({
       <div className="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-xl shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150">
         <div className="flex items-start justify-between border-b border-slate-800 pb-4">
           <div>
-            <h3 className="text-lg font-bold text-white">
+            <h3 className="text-lg font-bold text-[var(--sys-text-primary)]">
               {dispatchResult ? 'Action Execution Result' : 'Dispatch Shieldgrid Action'}
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -79,7 +79,7 @@ export const ActionDispatchModal: React.FC<ActionDispatchModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white text-lg font-bold"
+            className="text-slate-400 hover:text-[var(--sys-text-primary)] text-lg font-bold"
           >
             ✕
           </button>
@@ -189,7 +189,7 @@ export const ActionDispatchModal: React.FC<ActionDispatchModalProps> = ({
               <button
                 onClick={handleExecute}
                 disabled={dispatching || !targetId.trim()}
-                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-[var(--sys-text-primary)] text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
               >
                 <Play className={`w-4 h-4 ${dispatching ? 'animate-spin' : ''}`} />
                 {dispatching ? 'Dispatching...' : 'Dispatch Action'}
@@ -237,7 +237,7 @@ export const ActionDispatchModal: React.FC<ActionDispatchModalProps> = ({
             <div className="flex justify-end pt-2">
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--sys-text-primary)] text-sm font-medium rounded-lg transition-colors"
               >
                 Done
               </button>

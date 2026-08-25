@@ -156,7 +156,7 @@ export const ShieldgridActionsPage: React.FC = () => {
               <Zap className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">Shieldgrid Actions</h1>
+              <h1 className="text-2xl font-bold text-[var(--sys-text-primary)] tracking-tight">Shieldgrid Actions</h1>
               <p className="text-sm text-slate-400 mt-0.5">
                 Automated and analyst-orchestrated active response, containment, and forensic collection
               </p>
@@ -254,7 +254,7 @@ export const ShieldgridActionsPage: React.FC = () => {
                         <span className="text-xs uppercase tracking-wider text-indigo-400 font-mono font-medium">
                           {template.category}
                         </span>
-                        <h3 className="text-base font-semibold text-white group-hover:text-indigo-300 transition-colors mt-0.5">
+                        <h3 className="text-base font-semibold text-[var(--sys-text-primary)] group-hover:text-indigo-300 transition-colors mt-0.5">
                           {template.display_name}
                         </h3>
                       </div>
@@ -277,7 +277,7 @@ export const ShieldgridActionsPage: React.FC = () => {
                     </span>
                     <button
                       onClick={() => handleOpenDispatch(template)}
-                      className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+                      className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-[var(--sys-text-primary)] text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
                     >
                       <Play className="w-3.5 h-3.5 fill-current" />
                       Dispatch
@@ -315,7 +315,7 @@ export const ShieldgridActionsPage: React.FC = () => {
                 ) : (
                   executions.map((exec) => (
                     <tr key={exec.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="px-6 py-4 font-semibold text-white font-sans">
+                      <td className="px-6 py-4 font-semibold text-[var(--sys-text-primary)] font-sans">
                         {exec.template_name}
                       </td>
                       <td className="px-6 py-4 text-slate-300">
@@ -355,7 +355,7 @@ export const ShieldgridActionsPage: React.FC = () => {
                 <span className="text-xs uppercase font-mono text-indigo-400">
                   {selectedTemplate.category}
                 </span>
-                <h3 className="text-lg font-bold text-white mt-0.5">
+                <h3 className="text-lg font-bold text-[var(--sys-text-primary)] mt-0.5">
                   {selectedTemplate.display_name}
                 </h3>
               </div>
@@ -377,7 +377,7 @@ export const ShieldgridActionsPage: React.FC = () => {
                   placeholder="e.g. C.123456789 or 192.168.1.50"
                   value={targetId}
                   onChange={(e) => setTargetId(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-[var(--sys-text-primary)] placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
                 />
               </div>
 
@@ -388,7 +388,7 @@ export const ShieldgridActionsPage: React.FC = () => {
                 <select
                   value={targetType}
                   onChange={(e) => setTargetType(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-[var(--sys-text-primary)] focus:outline-none focus:border-indigo-500"
                 >
                   <option value="endpoint">Endpoint / Host</option>
                   <option value="agent">Wazuh Agent</option>
@@ -408,7 +408,7 @@ export const ShieldgridActionsPage: React.FC = () => {
                     placeholder="e.g. powershell.exe or 4128"
                     value={paramInputs['name'] || ''}
                     onChange={(e) => setParamInputs({ ...paramInputs, name: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-[var(--sys-text-primary)] placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
                   />
                 </div>
               )}
@@ -424,7 +424,7 @@ export const ShieldgridActionsPage: React.FC = () => {
                     placeholder="C:\\Windows\\Temp\\malware.exe"
                     value={paramInputs['path'] || ''}
                     onChange={(e) => setParamInputs({ ...paramInputs, path: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-[var(--sys-text-primary)] placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
                   />
                 </div>
               )}
@@ -450,7 +450,7 @@ export const ShieldgridActionsPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={dispatching || !targetId.trim()}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-[var(--sys-text-primary)] text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
                 >
                   {dispatching && <Clock className="w-4 h-4 animate-spin" />}
                   Confirm & Dispatch
@@ -467,7 +467,7 @@ export const ShieldgridActionsPage: React.FC = () => {
           <div className="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-2xl shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
-                <h3 className="text-base font-bold text-white">
+                <h3 className="text-base font-bold text-[var(--sys-text-primary)]">
                   Execution Output: {selectedExecution.template_name}
                 </h3>
                 <span className="text-xs text-slate-400 font-mono">
@@ -476,7 +476,7 @@ export const ShieldgridActionsPage: React.FC = () => {
               </div>
               <button
                 onClick={() => setSelectedExecution(null)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-[var(--sys-text-primary)]"
               >
                 ✕
               </button>

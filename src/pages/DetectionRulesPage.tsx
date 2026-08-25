@@ -110,7 +110,7 @@ export const DetectionRulesPage: React.FC = () => {
               <Shield className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">Detection Rules</h1>
+              <h1 className="text-2xl font-bold text-[var(--sys-text-primary)] tracking-tight">Detection Rules</h1>
               <p className="text-sm text-slate-400 mt-0.5">
                 Real-time detection catalog with automated VQL & SIEM correlation logic
               </p>
@@ -222,7 +222,7 @@ export const DetectionRulesPage: React.FC = () => {
                       {rule.rule_id}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-white">{rule.name}</div>
+                      <div className="font-semibold text-[var(--sys-text-primary)]">{rule.name}</div>
                       <div className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
                         <Layers className="w-3 h-3 text-slate-500" />
                         {rule.category}
@@ -277,7 +277,7 @@ export const DetectionRulesPage: React.FC = () => {
                     {selectedRule.connector_id}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold text-white mt-1">
+                <h3 className="text-lg font-bold text-[var(--sys-text-primary)] mt-1">
                   {selectedRule.name}
                 </h3>
               </div>

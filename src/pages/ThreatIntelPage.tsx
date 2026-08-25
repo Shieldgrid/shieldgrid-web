@@ -85,7 +85,7 @@ export default function ThreatIntelPage() {
     return (
       <div
         style={{
-          background: 'var(--color-bg-surface)',
+          background: 'var(--color-bg-[var(--sys-bg-surface)])',
           border: `1px solid var(--color-border)`,
           borderRadius: 'var(--radius-lg)',
           padding: compact ? '1rem' : '1.5rem',
@@ -95,10 +95,10 @@ export default function ThreatIntelPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <span style={{ fontSize: compact ? '1.25rem' : '1.5rem' }}>{getIocTypeIcon(data.ioc_type)}</span>
             <div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--color-text-[var(--sys-text-muted)])', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {data.ioc_type} {data.cached && '(cached)'}
               </div>
-              <code style={{ fontSize: compact ? '0.9rem' : '1rem', fontWeight: 600, color: 'var(--color-text-primary)', wordBreak: 'break-all' }}>
+              <code style={{ fontSize: compact ? '0.9rem' : '1rem', fontWeight: 600, color: 'var(--color-text-[var(--sys-text-primary)])', wordBreak: 'break-all' }}>
                 {data.ioc_value}
               </code>
             </div>
@@ -123,33 +123,33 @@ export default function ThreatIntelPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: compact ? '1fr' : '1fr 1fr', gap: '0.75rem', fontSize: '0.85rem' }}>
           <div>
-            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>Provider</span>
-            <div style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>{data.provider}</div>
+            <span style={{ color: 'var(--color-text-[var(--sys-text-muted)])', fontSize: '0.75rem' }}>Provider</span>
+            <div style={{ color: 'var(--color-text-[var(--sys-text-primary)])', fontWeight: 500 }}>{data.provider}</div>
           </div>
           {data.score != null && (
             <div>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>Score</span>
-              <div style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>{data.score}</div>
+              <span style={{ color: 'var(--color-text-[var(--sys-text-muted)])', fontSize: '0.75rem' }}>Score</span>
+              <div style={{ color: 'var(--color-text-[var(--sys-text-primary)])', fontWeight: 500 }}>{data.score}</div>
             </div>
           )}
           <div>
-            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>Checked At</span>
-            <div style={{ color: 'var(--color-text-primary)' }}>{new Date(data.checked_at).toLocaleString()}</div>
+            <span style={{ color: 'var(--color-text-[var(--sys-text-muted)])', fontSize: '0.75rem' }}>Checked At</span>
+            <div style={{ color: 'var(--color-text-[var(--sys-text-primary)])' }}>{new Date(data.checked_at).toLocaleString()}</div>
           </div>
         </div>
 
         {Object.keys(data.details).length > 0 && !compact && (
           <div style={{ marginTop: '1rem' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-[var(--sys-text-muted)])', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>
               DETAILS
             </div>
             <pre
               style={{
-                background: 'var(--color-bg-base)',
+                background: 'var(--color-bg-[var(--sys-bg-base)])',
                 padding: '1rem',
                 borderRadius: 'var(--radius-md)',
                 fontSize: '0.75rem',
-                color: 'var(--color-text-secondary)',
+                color: 'var(--color-text-[var(--sys-text-secondary)])',
                 overflowX: 'auto',
                 maxHeight: '300px',
                 margin: 0,
@@ -170,7 +170,7 @@ export default function ThreatIntelPage() {
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             🔍 Threat Intelligence
           </h1>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
+          <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
             Look up IOCs, CVEs, and enrich indicators across multiple intelligence providers.
           </p>
         </div>
@@ -190,7 +190,7 @@ export default function ThreatIntelPage() {
                 background: 'transparent',
                 border: 'none',
                 borderBottom: activeTab === tab.key ? '2px solid var(--color-accent)' : '2px solid transparent',
-                color: activeTab === tab.key ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                color: activeTab === tab.key ? 'var(--color-accent)' : 'var(--color-text-[var(--sys-text-secondary)])',
                 fontSize: '0.875rem',
                 fontWeight: activeTab === tab.key ? 600 : 400,
                 cursor: 'pointer',
@@ -223,7 +223,7 @@ export default function ThreatIntelPage() {
         {activeTab === 'lookup' && (
           <div
             style={{
-              background: 'var(--color-bg-surface)',
+              background: 'var(--color-bg-[var(--sys-bg-surface)])',
               border: '1px solid var(--color-border)',
               borderRadius: 'var(--radius-lg)',
               padding: '1.5rem',
@@ -239,9 +239,9 @@ export default function ThreatIntelPage() {
                 style={{
                   padding: '0.625rem 0.875rem',
                   borderRadius: 'var(--radius-md)',
-                  background: 'var(--color-bg-base)',
+                  background: 'var(--color-bg-[var(--sys-bg-base)])',
                   border: '1px solid var(--color-border)',
-                  color: 'var(--color-text-primary)',
+                  color: 'var(--color-text-[var(--sys-text-primary)])',
                   fontSize: '0.875rem',
                   minWidth: '120px',
                 }}
@@ -259,9 +259,9 @@ export default function ThreatIntelPage() {
                   flex: 1,
                   padding: '0.625rem 0.875rem',
                   borderRadius: 'var(--radius-md)',
-                  background: 'var(--color-bg-base)',
+                  background: 'var(--color-bg-[var(--sys-bg-base)])',
                   border: '1px solid var(--color-border)',
-                  color: 'var(--color-text-primary)',
+                  color: 'var(--color-text-[var(--sys-text-primary)])',
                   fontSize: '0.875rem',
                   fontFamily: 'monospace',
                 }}
@@ -271,7 +271,7 @@ export default function ThreatIntelPage() {
                 disabled={loading || !searchValue.trim()}
                 style={{
                   padding: '0.625rem 1.5rem',
-                  background: loading ? 'var(--color-text-muted)' : 'var(--color-accent)',
+                  background: loading ? 'var(--color-text-[var(--sys-text-muted)])' : 'var(--color-accent)',
                   color: '#0B1B33',
                   border: 'none',
                   borderRadius: 'var(--radius-md)',
@@ -284,7 +284,7 @@ export default function ThreatIntelPage() {
               </button>
             </div>
 
-            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-[var(--sys-text-muted)])' }}>
               Supports: IPv4, IPv6, domains, URLs, file hashes (MD5, SHA1, SHA256), and CVE identifiers.
             </div>
           </div>
@@ -294,7 +294,7 @@ export default function ThreatIntelPage() {
         {activeTab === 'bulk' && (
           <div
             style={{
-              background: 'var(--color-bg-surface)',
+              background: 'var(--color-bg-[var(--sys-bg-surface)])',
               border: '1px solid var(--color-border)',
               borderRadius: 'var(--radius-lg)',
               padding: '1.5rem',
@@ -316,9 +316,9 @@ export default function ThreatIntelPage() {
                   width: '100%',
                   padding: '0.75rem',
                   borderRadius: 'var(--radius-md)',
-                  background: 'var(--color-bg-base)',
+                  background: 'var(--color-bg-[var(--sys-bg-base)])',
                   border: '1px solid var(--color-border)',
-                  color: 'var(--color-text-primary)',
+                  color: 'var(--color-text-[var(--sys-text-primary)])',
                   fontSize: '0.85rem',
                   fontFamily: 'monospace',
                   resize: 'vertical',
@@ -327,7 +327,7 @@ export default function ThreatIntelPage() {
               />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--color-text-[var(--sys-text-muted)])' }}>
                 {bulkInput.split('\n').filter(s => s.trim()).length} IOCs detected
               </span>
               <button
@@ -335,7 +335,7 @@ export default function ThreatIntelPage() {
                 disabled={bulkLoading || !bulkInput.trim()}
                 style={{
                   padding: '0.625rem 1.5rem',
-                  background: bulkLoading ? 'var(--color-text-muted)' : 'var(--color-accent)',
+                  background: bulkLoading ? 'var(--color-text-[var(--sys-text-muted)])' : 'var(--color-accent)',
                   color: '#0B1B33',
                   border: 'none',
                   borderRadius: 'var(--radius-md)',
@@ -354,14 +354,14 @@ export default function ThreatIntelPage() {
         {activeTab === 'history' && (
           <div
             style={{
-              background: 'var(--color-bg-surface)',
+              background: 'var(--color-bg-[var(--sys-bg-surface)])',
               border: '1px solid var(--color-border)',
               borderRadius: 'var(--radius-lg)',
               padding: '1.5rem',
             }}
           >
             {searchHistory.length === 0 ? (
-              <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', textAlign: 'center', padding: '2rem' }}>
+              <p style={{ color: 'var(--color-text-[var(--sys-text-muted)])', fontStyle: 'italic', textAlign: 'center', padding: '2rem' }}>
                 No lookups performed yet. Use the IOC Lookup tab to search.
               </p>
             ) : (

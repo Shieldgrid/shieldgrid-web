@@ -20,7 +20,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       style={{
         padding: '3rem 1.5rem',
         borderRadius: 'var(--radius-lg)',
-        background: 'var(--color-bg-surface)',
+        background: 'var(--color-bg-[var(--sys-bg-surface)])',
         border: '1px border-dashed var(--color-border)',
         display: 'flex',
         flexDirection: 'column',
@@ -30,15 +30,15 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         gap: '0.75rem',
       }}
     >
-      <div style={{ color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>
+      <div style={{ color: 'var(--color-text-[var(--sys-text-muted)])', marginBottom: '0.25rem' }}>
         {icon || (
           <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
           </svg>
         )}
       </div>
-      <h3 style={{ color: 'var(--color-text-primary)', margin: 0 }}>{title}</h3>
-      <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', maxWidth: '28rem', margin: 0 }}>
+      <h3 style={{ color: 'var(--color-text-[var(--sys-text-primary)])', margin: 0 }}>{title}</h3>
+      <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.875rem', maxWidth: '28rem', margin: 0 }}>
         {description}
       </p>
       {actionLabel && onAction && (

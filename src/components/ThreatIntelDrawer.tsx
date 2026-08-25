@@ -81,11 +81,11 @@ export const ThreatIntelDrawer: React.FC<ThreatIntelDrawerProps> = ({
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
           <div className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-indigo-400" />
-            <h2 className="text-lg font-semibold text-white">Shieldgrid Threat Intelligence</h2>
+            <h2 className="text-lg font-semibold text-[var(--sys-text-primary)]">Shieldgrid Threat Intelligence</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1 rounded-md text-slate-400 hover:text-[var(--sys-text-primary)] hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -113,7 +113,7 @@ export const ThreatIntelDrawer: React.FC<ThreatIntelDrawerProps> = ({
             <button
               type="submit"
               disabled={loading || !iocInput.trim()}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-[var(--sys-text-primary)] rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Enrich
@@ -138,7 +138,7 @@ export const ThreatIntelDrawer: React.FC<ThreatIntelDrawerProps> = ({
                     <span className="text-xs uppercase tracking-wider text-slate-400 font-mono">
                       {result.ioc_type}
                     </span>
-                    <h3 className="text-base font-mono font-medium text-white break-all">
+                    <h3 className="text-base font-mono font-medium text-[var(--sys-text-primary)] break-all">
                       {result.ioc_value}
                     </h3>
                   </div>

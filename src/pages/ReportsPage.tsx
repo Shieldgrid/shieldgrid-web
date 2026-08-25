@@ -202,7 +202,7 @@ export default function ReportsPage() {
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             📊 Reports
           </h1>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
+          <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
             Generate, schedule, and download security reports for compliance, executive briefing, and operational use.
           </p>
         </div>
@@ -222,7 +222,7 @@ export default function ReportsPage() {
                 background: 'transparent',
                 border: 'none',
                 borderBottom: activeTab === tab.key ? '2px solid var(--color-accent)' : '2px solid transparent',
-                color: activeTab === tab.key ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                color: activeTab === tab.key ? 'var(--color-accent)' : 'var(--color-text-[var(--sys-text-secondary)])',
                 fontSize: '0.875rem',
                 fontWeight: activeTab === tab.key ? 600 : 400,
                 cursor: 'pointer',
@@ -246,9 +246,9 @@ export default function ReportsPage() {
                 style={{
                   padding: '0.5rem 0.75rem',
                   borderRadius: 'var(--radius-md)',
-                  background: 'var(--color-bg-surface)',
+                  background: 'var(--color-bg-[var(--sys-bg-surface)])',
                   border: '1px solid var(--color-border)',
-                  color: 'var(--color-text-primary)',
+                  color: 'var(--color-text-[var(--sys-text-primary)])',
                   fontSize: '0.875rem',
                 }}
               >
@@ -267,7 +267,7 @@ export default function ReportsPage() {
                   <div
                     key={template.id}
                     style={{
-                      background: 'var(--color-bg-surface)',
+                      background: 'var(--color-bg-[var(--sys-bg-surface)])',
                       border: '1px solid var(--color-border)',
                       borderRadius: 'var(--radius-lg)',
                       padding: '1.25rem',
@@ -296,17 +296,17 @@ export default function ReportsPage() {
                       </span>
                     </div>
 
-                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-[var(--sys-text-secondary)])', lineHeight: '1.5' }}>
                       {template.description}
                     </p>
 
-                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                      <span>Format: <strong style={{ color: 'var(--color-text-primary)', textTransform: 'uppercase' }}>{template.format}</strong></span>
-                      {template.schedule && <span>Schedule: <strong style={{ color: 'var(--color-text-primary)' }}>{template.schedule}</strong></span>}
+                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--color-text-[var(--sys-text-muted)])' }}>
+                      <span>Format: <strong style={{ color: 'var(--color-text-[var(--sys-text-primary)])', textTransform: 'uppercase' }}>{template.format}</strong></span>
+                      {template.schedule && <span>Schedule: <strong style={{ color: 'var(--color-text-[var(--sys-text-primary)])' }}>{template.schedule}</strong></span>}
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--color-border)' }}>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-[var(--sys-text-muted)])' }}>
                         {template.last_generated ? `Last: ${new Date(template.last_generated).toLocaleDateString()}` : 'Never generated'}
                       </span>
                       <button
@@ -314,7 +314,7 @@ export default function ReportsPage() {
                         disabled={generating === template.id}
                         style={{
                           padding: '0.375rem 0.75rem',
-                          background: generating === template.id ? 'var(--color-text-muted)' : 'var(--color-accent)',
+                          background: generating === template.id ? 'var(--color-text-[var(--sys-text-muted)])' : 'var(--color-accent)',
                           color: '#0B1B33',
                           border: 'none',
                           borderRadius: 'var(--radius-md)',
@@ -342,7 +342,7 @@ export default function ReportsPage() {
                 <div
                   key={report.id}
                   style={{
-                    background: 'var(--color-bg-surface)',
+                    background: 'var(--color-bg-[var(--sys-bg-surface)])',
                     border: '1px solid var(--color-border)',
                     borderRadius: 'var(--radius-lg)',
                     padding: '1rem 1.25rem',
@@ -355,13 +355,13 @@ export default function ReportsPage() {
                     <span style={{ fontSize: '1.25rem' }}>{statusStyle.icon}</span>
                     <div>
                       <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{report.template_name}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--color-text-[var(--sys-text-muted)])' }}>
                         {report.file_size} • {report.format.toUpperCase()} • Generated by {report.generated_by}
                       </div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-[var(--sys-text-muted)])' }}>
                       {new Date(report.generated_at).toLocaleString()}
                     </span>
                     {report.status === 'completed' && report.download_url && (
@@ -397,7 +397,7 @@ export default function ReportsPage() {
         {activeTab === 'schedule' && (
           <div
             style={{
-              background: 'var(--color-bg-surface)',
+              background: 'var(--color-bg-[var(--sys-bg-surface)])',
               border: '1px solid var(--color-border)',
               borderRadius: 'var(--radius-lg)',
               padding: '1.5rem',
@@ -427,7 +427,7 @@ export default function ReportsPage() {
                   key={template.id}
                   style={{
                     padding: '1rem',
-                    background: 'var(--color-bg-base)',
+                    background: 'var(--color-bg-[var(--sys-bg-base)])',
                     borderRadius: 'var(--radius-md)',
                     border: '1px solid var(--color-border)',
                     display: 'flex',
@@ -439,7 +439,7 @@ export default function ReportsPage() {
                     <span>⏰</span>
                     <div>
                       <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{template.name}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--color-text-[var(--sys-text-muted)])' }}>
                         Every {template.schedule} • Format: {template.format.toUpperCase()}
                       </div>
                     </div>
@@ -463,7 +463,7 @@ export default function ReportsPage() {
                         background: 'transparent',
                         border: '1px solid var(--color-border)',
                         borderRadius: 'var(--radius-sm)',
-                        color: 'var(--color-text-secondary)',
+                        color: 'var(--color-text-[var(--sys-text-secondary)])',
                         fontSize: '0.75rem',
                         cursor: 'pointer',
                       }}

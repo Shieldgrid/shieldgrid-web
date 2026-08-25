@@ -10,7 +10,7 @@
 
 export default function TokenTestPage() {
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-bg-base)', padding: '2rem' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg-[var(--sys-bg-base)])', padding: '2rem' }}>
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div style={{ marginBottom: '2rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--color-border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
@@ -26,11 +26,11 @@ export default function TokenTestPage() {
             <line x1="23.9" y1="4.1" x2="19.4" y2="8.6" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
             <line x1="8.6" y1="19.4" x2="4.1" y2="23.9" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
           </svg>
-          <h1 style={{ color: 'var(--color-text-primary)', fontSize: '1.5rem', fontWeight: 700 }}>
+          <h1 style={{ color: 'var(--color-text-[var(--sys-text-primary)])', fontSize: '1.5rem', fontWeight: 700 }}>
             Shieldgrid
           </h1>
         </div>
-        <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>
+        <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.875rem' }}>
           Design token validation — Ticket 2 ✓
         </p>
       </div>
@@ -41,9 +41,9 @@ export default function TokenTestPage() {
         <Card title="Colour Palette">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {[
-              { name: 'bg-base', value: '#0B1B33', label: 'Background Base' },
-              { name: 'bg-surface', value: '#132B4D', label: 'Surface Level 1' },
-              { name: 'bg-elevated', value: '#1A3560', label: 'Elevated Surface' },
+              { name: 'bg-[var(--sys-bg-base)]', value: '#0B1B33', label: 'Background Base' },
+              { name: 'bg-[var(--sys-bg-surface)]', value: '#132B4D', label: 'Surface Level 1' },
+              { name: 'bg-[var(--sys-bg-elevated)]', value: '#1A3560', label: 'Elevated Surface' },
               { name: 'accent', value: '#4FD1FF', label: 'Accent (Cyan)' },
               { name: 'warning', value: '#FF9F1C', label: 'Warning (Orange)' },
               { name: 'critical', value: '#E71D36', label: 'Critical (Red)' },
@@ -55,8 +55,8 @@ export default function TokenTestPage() {
                   background: value, border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0,
                 }} />
                 <div>
-                  <p style={{ color: 'var(--color-text-primary)', fontSize: '0.875rem', fontWeight: 500 }}>{label}</p>
-                  <code style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem' }}>{value}</code>
+                  <p style={{ color: 'var(--color-text-[var(--sys-text-primary)])', fontSize: '0.875rem', fontWeight: 500 }}>{label}</p>
+                  <code style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.75rem' }}>{value}</code>
                 </div>
               </div>
             ))}
@@ -67,19 +67,19 @@ export default function TokenTestPage() {
         <Card title="Typography Scale">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Inter — Display</p>
+              <p style={{ color: 'var(--color-text-[var(--sys-text-muted)])', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Inter — Display</p>
               <h1>Critical Alert Detected</h1>
             </div>
             <div>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Inter — H2</p>
+              <p style={{ color: 'var(--color-text-[var(--sys-text-muted)])', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Inter — H2</p>
               <h2>Open Cases (12)</h2>
             </div>
             <div>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Inter — Body</p>
+              <p style={{ color: 'var(--color-text-[var(--sys-text-muted)])', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Inter — Body</p>
               <p>Connector Wazuh is reporting degraded health. Last check: 2 minutes ago.</p>
             </div>
             <div>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>JetBrains Mono — Code/Payload</p>
+              <p style={{ color: 'var(--color-text-[var(--sys-text-muted)])', fontSize: '0.75rem', marginBottom: '0.25rem' }}>JetBrains Mono — Code/Payload</p>
               <code style={{ color: 'var(--color-accent)', display: 'block' }}>
                 {`{"rule_id": "5502", "level": 12, "agent": "web-01"}`}
               </code>
@@ -98,7 +98,7 @@ export default function TokenTestPage() {
             <Badge color="var(--color-critical)">Critical</Badge>
             <Badge color="var(--color-warning)">High</Badge>
             <Badge color="#FBBF24">Medium</Badge>
-            <Badge color="var(--color-text-secondary)">Low</Badge>
+            <Badge color="var(--color-text-[var(--sys-text-secondary)])">Low</Badge>
             <Badge color="var(--color-success)">Resolved</Badge>
           </div>
         </Card>
@@ -106,14 +106,14 @@ export default function TokenTestPage() {
         {/* ── Surface Levels ───────────────────────────────────────────── */}
         <Card title="Surface Levels">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-base)', border: '1px solid var(--color-border)' }}>
-              <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>bg-base (#0B1B33)</p>
+            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-[var(--sys-bg-base)])', border: '1px solid var(--color-border)' }}>
+              <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.875rem' }}>bg-[var(--sys-bg-base)] (#0B1B33)</p>
             </div>
-            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)' }}>
-              <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>bg-surface (#132B4D)</p>
+            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-[var(--sys-bg-surface)])', border: '1px solid var(--color-border)' }}>
+              <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.875rem' }}>bg-[var(--sys-bg-surface)] (#132B4D)</p>
             </div>
-            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)' }}>
-              <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>bg-elevated (#1A3560)</p>
+            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-[var(--sys-bg-elevated)])', border: '1px solid var(--color-border)' }}>
+              <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.875rem' }}>bg-[var(--sys-bg-elevated)] (#1A3560)</p>
             </div>
           </div>
         </Card>
@@ -128,12 +128,12 @@ export default function TokenTestPage() {
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{
-      background: 'var(--color-bg-surface)',
+      background: 'var(--color-bg-[var(--sys-bg-surface)])',
       borderRadius: 'var(--radius-lg)',
       border: '1px solid var(--color-border)',
       padding: '1.5rem',
     }}>
-      <h3 style={{ marginBottom: '1.25rem', color: 'var(--color-text-primary)' }}>{title}</h3>
+      <h3 style={{ marginBottom: '1.25rem', color: 'var(--color-text-[var(--sys-text-primary)])' }}>{title}</h3>
       {children}
     </div>
   );
@@ -145,8 +145,8 @@ function StatusRow({ label, status, reason }: { label: string; status: 'healthy'
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
       <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors[status], flexShrink: 0 }} />
       <div style={{ flex: 1 }}>
-        <span style={{ color: 'var(--color-text-primary)', fontSize: '0.875rem', fontWeight: 500 }}>{label}</span>
-        {reason && <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.125rem' }}>{reason}</p>}
+        <span style={{ color: 'var(--color-text-[var(--sys-text-primary)])', fontSize: '0.875rem', fontWeight: 500 }}>{label}</span>
+        {reason && <p style={{ fontSize: '0.75rem', color: 'var(--color-text-[var(--sys-text-muted)])', marginTop: '0.125rem' }}>{reason}</p>}
       </div>
       <span style={{ fontSize: '0.75rem', color: colors[status], fontWeight: 500, textTransform: 'capitalize' }}>{status}</span>
     </div>

@@ -220,10 +220,10 @@ export default function VelociraptorPage() {
   }, [selectedClient, shellCmd, shellArtifact, effectiveOs, shellRunning]);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-[#0F0F13]">
+    <div className="flex flex-col h-full overflow-hidden bg-[var(--sys-bg-base)]">
       
       {/* Header Area */}
-      <div className="flex-none px-6 py-4 border-b border-[#333340] bg-[#18181c]">
+      <div className="flex-none px-6 py-4 border-b border-[var(--sys-border)] bg-[var(--sys-bg-surface)]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
@@ -231,12 +231,12 @@ export default function VelociraptorPage() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-gray-100 m-0">Velociraptor Shell</h1>
-              <p className="text-xs font-mono text-gray-500 mt-0.5 tracking-wide uppercase">Advanced Endpoint Query Interface</p>
+              <p className="text-sm font-mono text-[var(--sys-text-muted)] mt-0.5 tracking-wide uppercase">Advanced Endpoint Query Interface</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 tracking-wider">
+            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 tracking-wider">
               <Server size={12} />
               SERVER + CLIENT SCOPE
             </span>
@@ -251,11 +251,11 @@ export default function VelociraptorPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex-none px-6 mt-4 border-b border-[#333340]">
+      <div className="flex-none px-6 mt-4 border-b border-[var(--sys-border)]">
         <div className="flex gap-6">
           <button
             onClick={() => setActiveTab('vql')}
-            className={`pb-3 text-sm font-semibold transition-colors relative ${activeTab === 'vql' ? 'text-emerald-400' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`pb-3 text-base font-semibold transition-colors relative ${activeTab === 'vql' ? 'text-emerald-400' : 'text-[var(--sys-text-muted)] hover:text-gray-300'}`}
           >
             <div className="flex items-center gap-2">
               <Code2 size={16} />
@@ -266,7 +266,7 @@ export default function VelociraptorPage() {
           
           <button
             onClick={() => setActiveTab('shell')}
-            className={`pb-3 text-sm font-semibold transition-colors relative ${activeTab === 'shell' ? 'text-amber-400' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`pb-3 text-base font-semibold transition-colors relative ${activeTab === 'shell' ? 'text-amber-400' : 'text-[var(--sys-text-muted)] hover:text-gray-300'}`}
           >
             <div className="flex items-center gap-2">
               <Terminal size={16} />
@@ -283,28 +283,28 @@ export default function VelociraptorPage() {
           <div className="flex h-full p-6 gap-6">
             
             {/* Artifact Browser Sidebar */}
-            <div className="w-80 flex flex-col bg-[#141419] border border-[#333340] rounded-xl overflow-hidden shadow-xl">
-              <div className="p-4 border-b border-[#333340] bg-[#18181c]">
-                <h2 className="text-sm font-bold text-gray-200 flex items-center gap-2">
+            <div className="w-80 flex flex-col bg-[var(--sys-bg-surface)] border border-[var(--sys-border)] rounded-xl overflow-hidden shadow-xl">
+              <div className="p-4 border-b border-[var(--sys-border)] bg-[var(--sys-bg-surface)]">
+                <h2 className="text-base font-bold text-gray-200 flex items-center gap-2">
                   <Box size={14} className="text-emerald-500" />
                   Artifact Browser
                 </h2>
                 <div className="mt-3 relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sys-text-muted)]" />
                   <input
                     type="text"
                     placeholder="Filter artifacts..."
                     value={artifactFilter}
                     onChange={(e) => setArtifactFilter(e.target.value)}
-                    className="w-full pl-9 pr-3 py-1.5 bg-[#0F0F13] border border-[#333340] rounded-md text-xs font-mono text-gray-300 focus:outline-none focus:border-emerald-500/50 transition-colors"
+                    className="w-full pl-9 pr-3 py-1.5 bg-[var(--sys-bg-base)] border border-[var(--sys-border)] rounded-md text-sm font-mono text-gray-300 focus:outline-none focus:border-emerald-500/50 transition-colors"
                   />
                 </div>
               </div>
-              <div className="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-[#333340] scrollbar-track-transparent">
+              <div className="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-[var(--sys-border)] scrollbar-track-transparent">
                 {artifactsLoading ? (
                   <div className="p-2"><LoadingSkeleton count={8} height="24px" /></div>
                 ) : filteredArtifacts.length === 0 ? (
-                  <div className="p-4 text-center text-xs text-gray-500 font-mono">No artifacts found</div>
+                  <div className="p-4 text-center text-sm text-[var(--sys-text-muted)] font-mono">No artifacts found</div>
                 ) : (
                   filteredArtifacts.map((a) => (
                     <button
@@ -314,7 +314,7 @@ export default function VelociraptorPage() {
                         inputRef.current?.focus();
                       }}
                       title={a.description ?? a.name}
-                      className="w-full text-left px-3 py-1.5 text-[11px] font-mono text-gray-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-md transition-colors truncate"
+                      className="w-full text-left px-3 py-1.5 text-sm font-mono text-[var(--sys-text-secondary)] hover:text-emerald-400 hover:bg-emerald-500/10 rounded-md transition-colors truncate"
                     >
                       {a.name}
                     </button>
@@ -324,17 +324,17 @@ export default function VelociraptorPage() {
             </div>
 
             {/* VQL Editor & Results */}
-            <div className="flex-1 flex flex-col min-w-0 bg-[#141419] border border-[#333340] rounded-xl overflow-hidden shadow-xl">
+            <div className="flex-1 flex flex-col min-w-0 bg-[var(--sys-bg-surface)] border border-[var(--sys-border)] rounded-xl overflow-hidden shadow-xl">
               
               {/* Editor Toolbar */}
-              <div className="flex items-center justify-between p-3 border-b border-[#333340] bg-[#18181c]">
+              <div className="flex items-center justify-between p-3 border-b border-[var(--sys-border)] bg-[var(--sys-bg-surface)]">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <Monitor size={14} className="text-gray-500" />
+                    <Monitor size={14} className="text-[var(--sys-text-muted)]" />
                     <select
                       value={selectedClient}
                       onChange={(e) => setSelectedClient(e.target.value)}
-                      className="bg-[#0F0F13] border border-[#333340] rounded-md px-2 py-1 text-xs font-mono text-gray-300 focus:outline-none focus:border-emerald-500/50"
+                      className="bg-[var(--sys-bg-base)] border border-[var(--sys-border)] rounded-md px-2 py-1 text-sm font-mono text-gray-300 focus:outline-none focus:border-emerald-500/50"
                     >
                       <option value="">— Server Scope —</option>
                       {clients.map((c) => (
@@ -345,14 +345,14 @@ export default function VelociraptorPage() {
                     </select>
                   </div>
                   
-                  <div className="h-4 w-px bg-[#333340]" />
+                  <div className="h-4 w-px bg-[var(--sys-border)]" />
                   
                   <div className="flex gap-2">
                     {TEMPLATES.map((t) => (
                       <button
                         key={t.label}
                         onClick={() => { setVql(t.vql); inputRef.current?.focus(); }}
-                        className="px-2 py-1 text-[10px] font-medium tracking-wide text-gray-400 hover:text-emerald-400 bg-[#252530] hover:bg-[#2a2a35] rounded transition-colors"
+                        className="px-2 py-1 text-xs font-medium tracking-wide text-[var(--sys-text-secondary)] hover:text-emerald-400 bg-[var(--sys-bg-elevated)] hover:bg-[var(--sys-bg-base)] rounded transition-colors"
                       >
                         {t.label}
                       </button>
@@ -362,22 +362,22 @@ export default function VelociraptorPage() {
 
                 <div className="flex items-center gap-3">
                   {result && (
-                    <span className="text-[10px] font-mono text-gray-500 flex items-center gap-1">
+                    <span className="text-xs font-mono text-[var(--sys-text-muted)] flex items-center gap-1">
                       <History size={12} />
                       {result.rows.length} rows · {result.elapsed_ms}ms
                       {result.truncated && ' (trunc)'}
                     </span>
                   )}
-                  <div className="flex bg-[#0F0F13] border border-[#333340] rounded-md overflow-hidden">
+                  <div className="flex bg-[var(--sys-bg-base)] border border-[var(--sys-border)] rounded-md overflow-hidden">
                     <button
                       onClick={() => setViewMode('table')}
-                      className={`px-3 py-1 flex items-center gap-1.5 text-[10px] font-bold tracking-wider transition-colors ${viewMode === 'table' ? 'bg-slate-700 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                      className={`px-3 py-1 flex items-center gap-1.5 text-xs font-bold tracking-wider transition-colors ${viewMode === 'table' ? 'bg-slate-700 text-[var(--sys-text-primary)]' : 'text-[var(--sys-text-muted)] hover:text-gray-300'}`}
                     >
                       <Table size={12} /> TABLE
                     </button>
                     <button
                       onClick={() => setViewMode('json')}
-                      className={`px-3 py-1 flex items-center gap-1.5 text-[10px] font-bold tracking-wider transition-colors ${viewMode === 'json' ? 'bg-slate-700 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                      className={`px-3 py-1 flex items-center gap-1.5 text-xs font-bold tracking-wider transition-colors ${viewMode === 'json' ? 'bg-slate-700 text-[var(--sys-text-primary)]' : 'text-[var(--sys-text-muted)] hover:text-gray-300'}`}
                     >
                       <FileJson size={12} /> JSON
                     </button>
@@ -386,21 +386,21 @@ export default function VelociraptorPage() {
               </div>
 
               {/* Editor */}
-              <div className="relative border-b border-[#333340]">
+              <div className="relative border-b border-[var(--sys-border)]">
                 <textarea
                   ref={inputRef}
                   value={vql}
                   onChange={(e) => setVql(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="SELECT * FROM clients()&#10;-- Press Enter to run, Shift+Enter for newline, ↑/↓ for history"
-                  className="w-full p-4 bg-[#0F0F13] text-sm font-mono text-emerald-300 placeholder-gray-600 focus:outline-none resize-none h-32"
+                  className="w-full p-4 bg-[var(--sys-bg-base)] text-base font-mono text-emerald-300 placeholder-gray-600 focus:outline-none resize-none h-32"
                   spellCheck={false}
                 />
                 <div className="absolute bottom-4 right-4">
                   <button
                     onClick={() => executeVql(vql)}
                     disabled={running || !vql.trim()}
-                    className="flex items-center gap-2 px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-[#333340] disabled:text-gray-500 text-[#0F0F13] text-xs font-bold rounded shadow-lg transition-all"
+                    className="flex items-center gap-2 px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-[var(--sys-border)] disabled:text-[var(--sys-text-muted)] text-[var(--sys-bg-base)] text-sm font-bold rounded shadow-lg transition-all"
                   >
                     {running ? <RefreshCw size={12} className="animate-spin" /> : <Play size={12} className="fill-current" />}
                     {running ? 'EXECUTING...' : 'RUN QUERY'}
@@ -409,34 +409,34 @@ export default function VelociraptorPage() {
               </div>
 
               {/* Results */}
-              <div ref={resultsRef} className="flex-1 overflow-auto bg-[#18181c] p-4 relative">
+              <div ref={resultsRef} className="flex-1 overflow-auto bg-[var(--sys-bg-surface)] p-4 relative">
                 {!result && !running && (
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-600 font-mono text-xs flex-col gap-2">
+                  <div className="absolute inset-0 flex items-center justify-center text-gray-600 font-mono text-sm flex-col gap-2">
                     <Code2 size={32} className="opacity-50" />
                     Awaiting Query Execution
                   </div>
                 )}
                 
                 {result && result.rows.length === 0 && !running && (
-                  <div className="text-gray-500 font-mono text-xs">Query executed successfully (0 rows returned)</div>
+                  <div className="text-[var(--sys-text-muted)] font-mono text-sm">Query executed successfully (0 rows returned)</div>
                 )}
 
                 {result && result.rows.length > 0 && viewMode === 'table' && (
                   <table className="w-full text-left border-collapse">
-                    <thead className="sticky top-0 bg-[#18181c] shadow-md z-10">
+                    <thead className="sticky top-0 bg-[var(--sys-bg-surface)] shadow-md z-10">
                       <tr>
                         {columns.map((c) => (
-                          <th key={c} className="px-4 py-2 text-[10px] font-bold text-emerald-500 uppercase tracking-wider border-b border-[#333340] whitespace-nowrap">
+                          <th key={c} className="px-4 py-2 text-xs font-bold text-emerald-500 uppercase tracking-wider border-b border-[var(--sys-border)] whitespace-nowrap">
                             {c}
                           </th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#252530]">
+                    <tbody className="divide-y divide-[var(--sys-border)]">
                       {result.rows.map((row, i) => (
-                        <tr key={i} className="hover:bg-[#1a1a22] transition-colors group">
+                        <tr key={i} className="hover:bg-[var(--sys-bg-surface)] transition-colors group">
                           {columns.map((c) => (
-                            <td key={c} className="px-4 py-2 text-[11px] font-mono text-gray-300 max-w-xs truncate group-hover:text-gray-100">
+                            <td key={c} className="px-4 py-2 text-sm font-mono text-gray-300 max-w-xs truncate group-hover:text-gray-100">
                               {renderCell(row[c])}
                             </td>
                           ))}
@@ -447,7 +447,7 @@ export default function VelociraptorPage() {
                 )}
 
                 {result && result.rows.length > 0 && viewMode === 'json' && (
-                  <pre className="text-[11px] font-mono text-emerald-400/90 whitespace-pre-wrap word-break-all">
+                  <pre className="text-sm font-mono text-emerald-400/90 whitespace-pre-wrap word-break-all">
                     {JSON.stringify(result.rows, null, 2)}
                   </pre>
                 )}
@@ -458,25 +458,25 @@ export default function VelociraptorPage() {
 
         {activeTab === 'shell' && (
           <div className="h-full p-6 flex justify-center">
-            <div className="w-full max-w-4xl flex flex-col bg-[#141419] border border-[#333340] rounded-xl overflow-hidden shadow-2xl">
+            <div className="w-full max-w-4xl flex flex-col bg-[var(--sys-bg-surface)] border border-[var(--sys-border)] rounded-xl overflow-hidden shadow-2xl">
               
               {/* Terminal Header */}
-              <div className="flex items-center justify-between p-4 bg-[#18181c] border-b border-[#333340]">
+              <div className="flex items-center justify-between p-4 bg-[var(--sys-bg-surface)] border-b border-[var(--sys-border)]">
                 <div className="flex items-center gap-3">
                   <Terminal size={18} className="text-amber-500" />
                   <div>
-                    <h2 className="text-sm font-bold text-gray-200">Interactive Remote Shell</h2>
-                    <p className="text-[10px] font-mono text-gray-500 uppercase">Execute commands directly on endpoint</p>
+                    <h2 className="text-base font-bold text-gray-200">Interactive Remote Shell</h2>
+                    <p className="text-xs font-mono text-[var(--sys-text-muted)] uppercase">Execute commands directly on endpoint</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-gray-500 uppercase">Target</span>
+                    <span className="text-xs font-bold text-[var(--sys-text-muted)] uppercase">Target</span>
                     <select
                       value={selectedClient}
                       onChange={(e) => setSelectedClient(e.target.value)}
-                      className="bg-[#0F0F13] border border-[#333340] rounded-md px-3 py-1.5 text-xs font-mono text-amber-500 focus:outline-none focus:border-amber-500/50"
+                      className="bg-[var(--sys-bg-base)] border border-[var(--sys-border)] rounded-md px-3 py-1.5 text-sm font-mono text-amber-500 focus:outline-none focus:border-amber-500/50"
                     >
                       <option value="" disabled>Select Endpoint...</option>
                       {clients.map((c) => (
@@ -487,14 +487,14 @@ export default function VelociraptorPage() {
                     </select>
                   </div>
                   
-                  <div className="h-6 w-px bg-[#333340]" />
+                  <div className="h-6 w-px bg-[var(--sys-border)]" />
                   
-                  <div className="flex bg-[#0F0F13] border border-[#333340] p-1 rounded-md">
+                  <div className="flex bg-[var(--sys-bg-base)] border border-[var(--sys-border)] p-1 rounded-md">
                     {(['auto', 'linux', 'windows', 'macos'] as ShellOs[]).map((os) => (
                       <button
                         key={os}
                         onClick={() => setShellOs(os)}
-                        className={`px-3 py-1 text-[10px] font-bold uppercase rounded transition-colors ${shellOs === os ? 'bg-amber-500 text-[#0F0F13]' : 'text-gray-500 hover:text-gray-300'}`}
+                        className={`px-3 py-1 text-xs font-bold uppercase rounded transition-colors ${shellOs === os ? 'bg-amber-500 text-[#0F0F13]' : 'text-[var(--sys-text-muted)] hover:text-gray-300'}`}
                       >
                         {os}
                       </button>
@@ -507,7 +507,7 @@ export default function VelociraptorPage() {
               <div className="flex-1 flex flex-col bg-[#0A0A0C] p-4 relative font-mono text-[13px]">
                 
                 {/* Warning / Status */}
-                <div className="mb-4 flex items-start gap-2 text-amber-500/80 bg-amber-500/10 p-3 rounded-lg border border-amber-500/20 text-[11px]">
+                <div className="mb-4 flex items-start gap-2 text-amber-500/80 bg-amber-500/10 p-3 rounded-lg border border-amber-500/20 text-sm">
                   <Command size={14} className="mt-0.5 shrink-0" />
                   <div>
                     Warning: Commands execute as SYSTEM/root. All actions are logged and audited.
@@ -524,7 +524,7 @@ export default function VelociraptorPage() {
                       <button
                         key={c}
                         onClick={() => { setShellCmd(c); shellInputRef.current?.focus(); }}
-                        className="px-2.5 py-1 bg-[#1a1a22] border border-[#333340] hover:border-amber-500/50 text-gray-400 hover:text-amber-400 rounded text-[11px] transition-colors"
+                        className="px-2.5 py-1 bg-[var(--sys-bg-surface)] border border-[var(--sys-border)] hover:border-amber-500/50 text-[var(--sys-text-secondary)] hover:text-amber-400 rounded text-sm transition-colors"
                       >
                         {c}
                       </button>
@@ -536,7 +536,7 @@ export default function VelociraptorPage() {
                 <div ref={shellResultsRef} className="flex-1 overflow-y-auto mb-4 text-gray-300 whitespace-pre-wrap">
                   {shellResult && shellResult.rows.map((row, idx) => (
                     <div key={idx} className="mb-2">
-                      <div className="text-gray-500 mb-1">[{selectedClientObj?.hostname ?? selectedClient}] $ {(row as any).Command ?? 'Output:'}</div>
+                      <div className="text-[var(--sys-text-muted)] mb-1">[{selectedClientObj?.hostname ?? selectedClient}] $ {(row as any).Command ?? 'Output:'}</div>
                       <div className="text-gray-200">{(row as any).Stdout}</div>
                       {(row as any).Stderr && <div className="text-red-400 mt-1">{(row as any).Stderr}</div>}
                     </div>
@@ -545,7 +545,7 @@ export default function VelociraptorPage() {
                 </div>
 
                 {/* Terminal Input */}
-                <div className="flex items-center gap-2 mt-auto pt-4 border-t border-[#333340]">
+                <div className="flex items-center gap-2 mt-auto pt-4 border-t border-[var(--sys-border)]">
                   <ChevronRight size={16} className="text-amber-500 shrink-0" />
                   <input
                     ref={shellInputRef}
@@ -565,7 +565,7 @@ export default function VelociraptorPage() {
                     <select
                       value={winShell}
                       onChange={(e) => setWinShell(e.target.value as 'cmd' | 'powershell')}
-                      className="bg-[#18181c] border border-[#333340] rounded px-2 py-1 text-[10px] text-gray-400 focus:outline-none"
+                      className="bg-[var(--sys-bg-surface)] border border-[var(--sys-border)] rounded px-2 py-1 text-xs text-[var(--sys-text-secondary)] focus:outline-none"
                     >
                       <option value="cmd">CMD</option>
                       <option value="powershell">PS</option>
@@ -575,7 +575,7 @@ export default function VelociraptorPage() {
                   <button
                     onClick={runShellCommand}
                     disabled={!shellCmd.trim() || !selectedClient || shellRunning || effectiveOs === 'macos'}
-                    className="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 disabled:bg-[#333340] disabled:text-gray-500 text-[#0F0F13] text-xs font-bold rounded transition-all"
+                    className="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 disabled:bg-[var(--sys-border)] disabled:text-[var(--sys-text-muted)] text-[var(--sys-bg-base)] text-sm font-bold rounded transition-all"
                   >
                     SEND
                   </button>

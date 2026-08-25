@@ -60,8 +60,8 @@ export default function AlertsPage() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#E0E0E0', margin: 0 }}>Security Alert Queue</h1>
-          <p style={{ fontSize: '0.7rem', color: '#555560', fontFamily: 'var(--font-mono)', margin: '0.25rem 0 0' }}>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--sys-text-primary)', margin: 0 }}>Security Alert Queue</h1>
+          <p style={{ fontSize: '0.7rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)', margin: '0.25rem 0 0' }}>
             NORMALIZED ALERT STREAM // ALL CONNECTED SENSORS
           </p>
         </div>
@@ -74,19 +74,19 @@ export default function AlertsPage() {
 
       {/* Filter Controls */}
       <div className="panel" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', color: '#555560' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', color: 'var(--sys-text-muted)' }}>
           <Filter size={12} />
           <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>FILTERS</span>
         </div>
         <div>
-          <label style={{ display: 'block', fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)', marginBottom: '0.125rem' }}>CONNECTOR</label>
+          <label style={{ display: 'block', fontSize: '0.6rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '0.125rem' }}>CONNECTOR</label>
           <select value={connectorFilter} onChange={(e) => setConnectorFilter(e.target.value)} className="input" style={{ minWidth: '120px' }}>
             <option value="all">ALL</option>
             {connectors.map((c) => <option key={c} value={c}>{c.toUpperCase()}</option>)}
           </select>
         </div>
         <div>
-          <label style={{ display: 'block', fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)', marginBottom: '0.125rem' }}>SEVERITY</label>
+          <label style={{ display: 'block', fontSize: '0.6rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '0.125rem' }}>SEVERITY</label>
           <select value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)} className="input" style={{ minWidth: '120px' }}>
             <option value="all">ALL</option>
             <option value="critical">CRITICAL</option>
@@ -97,7 +97,7 @@ export default function AlertsPage() {
           </select>
         </div>
         <div>
-          <label style={{ display: 'block', fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)', marginBottom: '0.125rem' }}>STATUS</label>
+          <label style={{ display: 'block', fontSize: '0.6rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '0.125rem' }}>STATUS</label>
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="input" style={{ minWidth: '120px' }}>
             <option value="all">ALL</option>
             <option value="open">OPEN</option>
@@ -105,7 +105,7 @@ export default function AlertsPage() {
             <option value="closed">CLOSED</option>
           </select>
         </div>
-        <div style={{ marginLeft: 'auto', fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: '#555560' }}>
+        <div style={{ marginLeft: 'auto', fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'var(--sys-text-muted)' }}>
           {filteredAlerts.length} / {alerts.length} RECORDS
         </div>
       </div>
@@ -146,13 +146,13 @@ export default function AlertsPage() {
                     >
                       <td><SeverityBadge severity={alert.severity} /></td>
                       <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>{alert.source}</td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#8A8A96' }}>{alert.connector_id}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--sys-text-secondary)' }}>{alert.connector_id}</td>
                       <td>
-                        <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: alert.status === 'open' ? '#E5A93B' : '#555560', textTransform: 'uppercase' }}>
+                        <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: alert.status === 'open' ? 'var(--color-warning)' : 'var(--sys-text-muted)', textTransform: 'uppercase' }}>
                           {alert.status}
                         </span>
                       </td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#555560' }}>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--sys-text-muted)' }}>
                         {new Date(alert.timestamp).toLocaleString('en-US', { hour12: false, month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                       </td>
                     </tr>
@@ -165,9 +165,9 @@ export default function AlertsPage() {
           {/* Alert Detail Panel */}
           {selectedAlert && (
             <div className="panel" style={{ position: 'sticky', top: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.5rem', borderBottom: '1px solid #333340' }}>
-                <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: '#555560', textTransform: 'uppercase' }}>ALERT DETAIL</span>
-                <button onClick={() => setSelectedAlert(null)} style={{ background: 'none', border: 'none', color: '#555560', cursor: 'pointer' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.5rem', borderBottom: '1px solid var(--sys-border)' }}>
+                <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'var(--sys-text-muted)', textTransform: 'uppercase' }}>ALERT DETAIL</span>
+                <button onClick={() => setSelectedAlert(null)} style={{ background: 'none', border: 'none', color: 'var(--sys-text-muted)', cursor: 'pointer' }}>
                   <X size={14} />
                 </button>
               </div>
@@ -180,7 +180,7 @@ export default function AlertsPage() {
               </div>
 
               <div>
-                <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '0.125rem' }}>STATUS</label>
+                <label style={{ fontSize: '0.6rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '0.125rem' }}>STATUS</label>
                 <select
                   value={selectedAlert.status}
                   onChange={(e) => changeStatus(selectedAlert, e.target.value as AlertStatus)}
@@ -194,12 +194,12 @@ export default function AlertsPage() {
               </div>
 
               <div>
-                <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '0.25rem' }}>RAW PAYLOAD</label>
+                <label style={{ fontSize: '0.6rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '0.25rem' }}>RAW PAYLOAD</label>
                 <pre style={{
-                  background: '#121212', border: '1px solid #333340',
+                  background: 'var(--sys-bg-base)', border: '1px solid var(--sys-border)',
                   padding: '0.5rem', borderRadius: '2px',
                   fontSize: '0.65rem', fontFamily: 'var(--font-mono)',
-                  color: '#8A8A96', overflowX: 'auto', maxHeight: '300px',
+                  color: 'var(--sys-text-secondary)', overflowX: 'auto', maxHeight: '300px',
                   whiteSpace: 'pre-wrap', wordBreak: 'break-all', margin: 0,
                 }}>
                   {JSON.stringify(selectedAlert.raw_payload, null, 2)}
@@ -224,8 +224,8 @@ function SeverityBadge({ severity }: { severity: string }) {
 function FieldBlock({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
-      <div style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)', marginBottom: '0.125rem' }}>{label}</div>
-      <div style={{ fontSize: '0.8125rem', color: '#E0E0E0', fontFamily: mono ? 'var(--font-mono)' : undefined, wordBreak: 'break-all' }}>{value}</div>
+      <div style={{ fontSize: '0.6rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '0.125rem' }}>{label}</div>
+      <div style={{ fontSize: '0.8125rem', color: 'var(--sys-text-primary)', fontFamily: mono ? 'var(--font-mono)' : undefined, wordBreak: 'break-all' }}>{value}</div>
     </div>
   );
 }

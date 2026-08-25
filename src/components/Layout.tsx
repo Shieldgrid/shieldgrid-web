@@ -9,8 +9,9 @@ import {
   LayoutDashboard, AlertTriangle, FolderOpen, Shield, Crosshair,
   Map, Search, Monitor, Brain, Clock, Globe, Bell, FileText,
   Activity, Terminal, Users, ScrollText, ChevronLeft, ChevronRight,
-  LogOut, Zap, Plug
+  LogOut, Zap, Plug, Sun, Moon
 } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,6 +19,7 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [intelDrawerOpen, setIntelDrawerOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -80,40 +82,40 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: '#121212' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: 'var(--sys-bg-base)' }}>
       {/* ── System Status Bar ────────────────────────────────────────────────── */}
       <div
         style={{
           height: '28px',
-          background: '#1A1A22',
-          borderBottom: '1px solid #333340',
+          background: 'var(--sys-bg-surface)',
+          borderBottom: '1px solid var(--sys-border)',
           display: 'flex',
           alignItems: 'center',
           padding: '0 0.75rem',
           fontSize: '0.7rem',
           fontFamily: 'var(--font-mono)',
-          color: '#8A8A96',
+          color: 'var(--sys-text-secondary)',
           gap: '1.5rem',
           flexShrink: 0,
           zIndex: 20,
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-          <span className="status-dot ok" /> SHIELDGRID v2.1.0
+          <span className="status-dot ok" /> SHIELDGRID v1.0.0-beta
         </span>
-        <span style={{ color: '#555560' }}>|</span>
+        <span style={{ color: 'var(--sys-text-muted)' }}>|</span>
         <span>DEPLOY: PRODUCTION</span>
-        <span style={{ color: '#555560' }}>|</span>
-        <span>DB: <span style={{ color: '#4CAF50' }}>CONNECTED</span></span>
-        <span style={{ color: '#555560' }}>|</span>
-        <span>WAZUH: <span style={{ color: getConnectorStatus('wazuh') === 'healthy' ? '#4CAF50' : '#D32F2F' }}>{getConnectorStatus('wazuh').toUpperCase()}</span></span>
-        <span style={{ color: '#555560' }}>|</span>
-        <span>VR: <span style={{ color: getConnectorStatus('velociraptor') === 'healthy' ? '#4CAF50' : '#D32F2F' }}>{getConnectorStatus('velociraptor').toUpperCase()}</span></span>
+        <span style={{ color: 'var(--sys-text-muted)' }}>|</span>
+        <span>DB: <span style={{ color: 'var(--color-success)' }}>CONNECTED</span></span>
+        <span style={{ color: 'var(--sys-text-muted)' }}>|</span>
+        <span>WAZUH: <span style={{ color: getConnectorStatus('wazuh') === 'healthy' ? 'var(--color-success)' : 'var(--color-critical)' }}>{getConnectorStatus('wazuh').toUpperCase()}</span></span>
+        <span style={{ color: 'var(--sys-text-muted)' }}>|</span>
+        <span>VR: <span style={{ color: getConnectorStatus('velociraptor') === 'healthy' ? 'var(--color-success)' : 'var(--color-critical)' }}>{getConnectorStatus('velociraptor').toUpperCase()}</span></span>
         <div style={{ flex: 1 }} />
-        <span style={{ color: '#E5A93B', border: '1px solid #E5A93B', padding: '0 0.375rem', borderRadius: '2px' }}>
+        <span style={{ color: 'var(--color-warning)', border: '1px solid var(--color-warning)', padding: '0 0.375rem', borderRadius: '2px' }}>
           RELEASE NOTES
         </span>
-        <span style={{ color: '#555560' }}>|</span>
+        <span style={{ color: 'var(--sys-text-muted)' }}>|</span>
         <span>{formatTime(systemTime)} UTC</span>
       </div>
 
@@ -123,8 +125,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           style={{
             width: sidebarWidth,
             minWidth: sidebarWidth,
-            background: '#1A1A22',
-            borderRight: '1px solid #333340',
+            background: 'var(--sys-bg-surface)',
+            borderRight: '1px solid var(--sys-border)',
             display: 'flex',
             flexDirection: 'column',
             transition: 'width 150ms ease, min-width 150ms ease',
@@ -137,7 +139,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div
             style={{
               padding: collapsed ? '0.625rem 0' : '0.625rem 0.75rem',
-              borderBottom: '1px solid #333340',
+              borderBottom: '1px solid var(--sys-border)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: collapsed ? 'center' : 'space-between',
@@ -149,7 +151,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <img src={logoSvg} alt="Shieldgrid" style={{ width: '18px', height: '18px', flexShrink: 0 }} />
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#E0E0E0', letterSpacing: '0.02em' }}>
+                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--sys-text-primary)', letterSpacing: '0.02em' }}>
                   SHIELDGRID
                 </span>
               </div>
@@ -160,12 +162,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               style={{
                 width: '22px', height: '22px', flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'transparent', border: '1px solid #333340',
-                borderRadius: '2px', color: '#8A8A96', cursor: 'pointer',
+                background: 'transparent', border: '1px solid var(--sys-border)',
+                borderRadius: '2px', color: 'var(--sys-text-secondary)', cursor: 'pointer',
                 fontSize: '0.65rem',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#6B7B99'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#333340'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-accent)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--sys-border)'; }}
             >
               {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
             </button>
@@ -190,7 +192,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     key={`sep-${idx}`}
                     style={{
                       height: '1px',
-                      background: '#333340',
+                      background: 'var(--sys-border)',
                       margin: collapsed ? '0.25rem 6px' : '0.25rem 0',
                     }}
                   />
@@ -221,8 +223,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                       textDecoration: 'none',
                       fontSize: '0.8125rem',
                       fontWeight: isActive ? 600 : 400,
-                      color: isActive ? '#121212' : '#8A8A96',
-                      background: isActive ? '#E0E0E0' : 'transparent',
+                      color: isActive ? 'var(--sys-bg-base)' : 'var(--sys-text-secondary)',
+                      background: isActive ? 'var(--sys-text-primary)' : 'transparent',
                       transition: 'background 100ms, color 100ms',
                       whiteSpace: 'nowrap',
                       minHeight: '28px',
@@ -230,13 +232,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     onMouseEnter={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.background = 'rgba(107,123,153,0.08)';
-                        e.currentTarget.style.color = '#E0E0E0';
+                        e.currentTarget.style.color = 'var(--sys-text-primary)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.background = 'transparent';
-                        e.currentTarget.style.color = '#8A8A96';
+                        e.currentTarget.style.color = 'var(--sys-text-secondary)';
                       }
                     }}
                     title={collapsed ? navItem.label : undefined}
@@ -253,11 +255,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                         top: '50%',
                         transform: 'translateY(-50%)',
                         padding: '0.25rem 0.5rem',
-                        background: '#2A2A32',
-                        border: '1px solid #333340',
+                        background: 'var(--sys-bg-elevated)',
+                        border: '1px solid var(--sys-border)',
                         borderRadius: '2px',
                         fontSize: '0.75rem',
-                        color: '#E0E0E0',
+                        color: 'var(--sys-text-primary)',
                         whiteSpace: 'nowrap',
                         zIndex: 50,
                         pointerEvents: 'none',
@@ -285,16 +287,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 gap: '0.375rem',
                 padding: collapsed ? '0.375rem' : '0.375rem',
                 background: 'transparent',
-                border: '1px solid #333340',
+                border: '1px solid var(--sys-border)',
                 borderRadius: '2px',
-                color: '#8A8A96',
+                color: 'var(--sys-text-secondary)',
                 fontSize: '0.75rem',
                 fontWeight: 500,
                 cursor: 'pointer',
                 fontFamily: 'var(--font-mono)',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#6B7B99'; e.currentTarget.style.color = '#E0E0E0'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#333340'; e.currentTarget.style.color = '#8A8A96'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-accent)'; e.currentTarget.style.color = 'var(--sys-text-primary)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--sys-border)'; e.currentTarget.style.color = 'var(--sys-text-secondary)'; }}
             >
               <Search size={13} />
               {!collapsed && <span>INTEL LOOKUP</span>}
@@ -302,28 +304,40 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
 
           {/* User / Logout */}
-          <div style={{ padding: collapsed ? '0.5rem 0' : '0.5rem 0.75rem', borderTop: '1px solid #333340' }}>
+          <div style={{ padding: collapsed ? '0.5rem 0' : '0.5rem 0.75rem', borderTop: '1px solid var(--sys-border)' }}>
             {collapsed ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.375rem' }}>
                 <div
                   style={{
                     width: '24px', height: '24px', borderRadius: '2px',
-                    background: '#2A2A32', border: '1px solid #333340',
+                    background: 'var(--sys-bg-elevated)', border: '1px solid var(--sys-border)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '0.6rem', fontWeight: 700, color: '#6B7B99',
+                    fontSize: '0.6rem', fontWeight: 700, color: 'var(--color-accent)',
                   }}
                   title={user?.sub || 'User'}
                 >
                   {user?.sub ? user.sub.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <button
+                  onClick={toggleTheme}
+                  title="Toggle Theme"
+                  style={{
+                    width: '24px', height: '24px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'transparent', border: '1px solid var(--sys-border)',
+                    borderRadius: '2px', color: 'var(--sys-text-muted)', cursor: 'pointer',
+                  }}
+                >
+                  {theme === 'dark' ? <Sun size={11} /> : <Moon size={11} />}
+                </button>
+                <button
                   onClick={handleLogout}
                   title="Sign Out"
                   style={{
                     width: '24px', height: '24px',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: 'transparent', border: '1px solid #333340',
-                    borderRadius: '2px', color: '#555560', cursor: 'pointer',
+                    background: 'transparent', border: '1px solid var(--sys-border)',
+                    borderRadius: '2px', color: 'var(--sys-text-muted)', cursor: 'pointer',
                   }}
                 >
                   <LogOut size={11} />
@@ -331,22 +345,36 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: '#555560' }}>
-                  <span style={{ color: '#8A8A96' }}>USER:</span> {user?.sub ? user.sub.slice(0, 12) : 'operator'}
-                  <span style={{ marginLeft: '0.5rem', color: '#6B7B99' }}>[{user?.role || 'operator'}]</span>
+                <div style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'var(--sys-text-muted)' }}>
+                  <span style={{ color: 'var(--sys-text-secondary)' }}>USER:</span> {user?.sub ? user.sub.slice(0, 12) : 'operator'}
+                  <span style={{ marginLeft: '0.5rem', color: 'var(--color-accent)' }}>[{user?.role || 'operator'}]</span>
                 </div>
-                <button
-                  onClick={handleLogout}
-                  title="Sign Out"
-                  style={{
-                    width: '22px', height: '22px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: 'transparent', border: '1px solid #333340',
-                    borderRadius: '2px', color: '#555560', cursor: 'pointer',
-                  }}
-                >
-                  <LogOut size={11} />
-                </button>
+                <div style={{ display: 'flex', gap: '0.375rem' }}>
+                  <button
+                    onClick={toggleTheme}
+                    title="Toggle Theme"
+                    style={{
+                      width: '22px', height: '22px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'transparent', border: '1px solid var(--sys-border)',
+                      borderRadius: '2px', color: 'var(--sys-text-muted)', cursor: 'pointer',
+                    }}
+                  >
+                    {theme === 'dark' ? <Sun size={11} /> : <Moon size={11} />}
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    title="Sign Out"
+                    style={{
+                      width: '22px', height: '22px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'transparent', border: '1px solid var(--sys-border)',
+                      borderRadius: '2px', color: 'var(--sys-text-muted)', cursor: 'pointer',
+                    }}
+                  >
+                    <LogOut size={11} />
+                  </button>
+                </div>
               </div>
             )}
           </div>

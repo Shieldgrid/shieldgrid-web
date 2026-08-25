@@ -208,7 +208,7 @@ export default function ScaVulnerabilitiesPage() {
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             🛡️ SCA &amp; Vulnerabilities
           </h1>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
+          <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
             Security Configuration Assessment and CVE vulnerability tracking.
           </p>
         </div>
@@ -224,7 +224,7 @@ export default function ScaVulnerabilitiesPage() {
             <div
               key={idx}
               style={{
-                background: 'var(--color-bg-surface)',
+                background: 'var(--color-bg-[var(--sys-bg-surface)])',
                 border: '1px solid var(--color-border)',
                 borderRadius: 'var(--radius-lg)',
                 padding: '1.25rem',
@@ -233,7 +233,7 @@ export default function ScaVulnerabilitiesPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <span style={{ fontSize: '1.5rem' }}>{stat.icon}</span>
                 <div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>{stat.label}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-[var(--sys-text-muted)])', textTransform: 'uppercase' }}>{stat.label}</div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 700, color: stat.color }}>{stat.value}</div>
                 </div>
               </div>
@@ -255,7 +255,7 @@ export default function ScaVulnerabilitiesPage() {
                 background: 'transparent',
                 border: 'none',
                 borderBottom: activeTab === tab.key ? '2px solid var(--color-accent)' : '2px solid transparent',
-                color: activeTab === tab.key ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                color: activeTab === tab.key ? 'var(--color-accent)' : 'var(--color-text-[var(--sys-text-secondary)])',
                 fontSize: '0.875rem',
                 fontWeight: activeTab === tab.key ? 600 : 400,
                 cursor: 'pointer',
@@ -284,9 +284,9 @@ export default function ScaVulnerabilitiesPage() {
                   minWidth: '200px',
                   padding: '0.5rem 0.75rem',
                   borderRadius: 'var(--radius-md)',
-                  background: 'var(--color-bg-surface)',
+                  background: 'var(--color-bg-[var(--sys-bg-surface)])',
                   border: '1px solid var(--color-border)',
-                  color: 'var(--color-text-primary)',
+                  color: 'var(--color-text-[var(--sys-text-primary)])',
                   fontSize: '0.875rem',
                 }}
               />
@@ -296,9 +296,9 @@ export default function ScaVulnerabilitiesPage() {
                 style={{
                   padding: '0.5rem 0.75rem',
                   borderRadius: 'var(--radius-md)',
-                  background: 'var(--color-bg-surface)',
+                  background: 'var(--color-bg-[var(--sys-bg-surface)])',
                   border: '1px solid var(--color-border)',
-                  color: 'var(--color-text-primary)',
+                  color: 'var(--color-text-[var(--sys-text-primary)])',
                   fontSize: '0.875rem',
                 }}
               >
@@ -314,9 +314,9 @@ export default function ScaVulnerabilitiesPage() {
                 style={{
                   padding: '0.5rem 0.75rem',
                   borderRadius: 'var(--radius-md)',
-                  background: 'var(--color-bg-surface)',
+                  background: 'var(--color-bg-[var(--sys-bg-surface)])',
                   border: '1px solid var(--color-border)',
-                  color: 'var(--color-text-primary)',
+                  color: 'var(--color-text-[var(--sys-text-primary)])',
                   fontSize: '0.875rem',
                 }}
               >
@@ -337,7 +337,7 @@ export default function ScaVulnerabilitiesPage() {
                   <div
                     key={vuln.id}
                     style={{
-                      background: 'var(--color-bg-surface)',
+                      background: 'var(--color-bg-[var(--sys-bg-surface)])',
                       border: '1px solid var(--color-border)',
                       borderRadius: 'var(--radius-lg)',
                       padding: '1.25rem',
@@ -376,30 +376,30 @@ export default function ScaVulnerabilitiesPage() {
                       </span>
                     </div>
 
-                    <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0 0 0.75rem 0' }}>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--color-text-[var(--sys-text-secondary)])', margin: '0 0 0.75rem 0' }}>
                       {vuln.description}
                     </p>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', fontSize: '0.8rem' }}>
                       <div>
-                        <span style={{ color: 'var(--color-text-muted)', fontSize: '0.7rem', display: 'block' }}>CVSS Score</span>
+                        <span style={{ color: 'var(--color-text-[var(--sys-text-muted)])', fontSize: '0.7rem', display: 'block' }}>CVSS Score</span>
                         <span style={{ fontWeight: 600, color: vuln.cvss_score >= 9 ? '#ef4444' : vuln.cvss_score >= 7 ? '#f59e0b' : '#10b981' }}>
                           {vuln.cvss_score.toFixed(1)}
                         </span>
                       </div>
                       <div>
-                        <span style={{ color: 'var(--color-text-muted)', fontSize: '0.7rem', display: 'block' }}>EPSS Score</span>
-                        <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                        <span style={{ color: 'var(--color-text-[var(--sys-text-muted)])', fontSize: '0.7rem', display: 'block' }}>EPSS Score</span>
+                        <span style={{ fontWeight: 600, color: 'var(--color-text-[var(--sys-text-primary)])' }}>
                           {vuln.epss_score != null ? `${(vuln.epss_score * 100).toFixed(1)}%` : 'N/A'}
                         </span>
                       </div>
                       <div>
-                        <span style={{ color: 'var(--color-text-muted)', fontSize: '0.7rem', display: 'block' }}>Affected Asset</span>
-                        <span style={{ color: 'var(--color-text-primary)', wordBreak: 'break-all' }}>{vuln.affected_asset}</span>
+                        <span style={{ color: 'var(--color-text-[var(--sys-text-muted)])', fontSize: '0.7rem', display: 'block' }}>Affected Asset</span>
+                        <span style={{ color: 'var(--color-text-[var(--sys-text-primary)])', wordBreak: 'break-all' }}>{vuln.affected_asset}</span>
                       </div>
                       <div>
-                        <span style={{ color: 'var(--color-text-muted)', fontSize: '0.7rem', display: 'block' }}>Detected</span>
-                        <span style={{ color: 'var(--color-text-primary)' }}>{new Date(vuln.detected_at).toLocaleDateString()}</span>
+                        <span style={{ color: 'var(--color-text-[var(--sys-text-muted)])', fontSize: '0.7rem', display: 'block' }}>Detected</span>
+                        <span style={{ color: 'var(--color-text-[var(--sys-text-primary)])' }}>{new Date(vuln.detected_at).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>
@@ -416,7 +416,7 @@ export default function ScaVulnerabilitiesPage() {
               <div
                 key={policy.id}
                 style={{
-                  background: 'var(--color-bg-surface)',
+                  background: 'var(--color-bg-[var(--sys-bg-surface)])',
                   border: '1px solid var(--color-border)',
                   borderRadius: 'var(--radius-lg)',
                   padding: '1.5rem',
@@ -438,13 +438,13 @@ export default function ScaVulnerabilitiesPage() {
                         {policy.platform}
                       </span>
                     </div>
-                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>{policy.description}</p>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-[var(--sys-text-secondary)])' }}>{policy.description}</p>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '2rem', fontWeight: 700, color: getScoreColor(policy.score) }}>
                       {policy.score.toFixed(1)}%
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Compliance Score</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-[var(--sys-text-muted)])' }}>Compliance Score</div>
                   </div>
                 </div>
 
@@ -453,7 +453,7 @@ export default function ScaVulnerabilitiesPage() {
                   <div
                     style={{
                       height: '8px',
-                      background: 'var(--color-bg-base)',
+                      background: 'var(--color-bg-[var(--sys-bg-base)])',
                       borderRadius: '4px',
                       overflow: 'hidden',
                     }}
@@ -468,13 +468,13 @@ export default function ScaVulnerabilitiesPage() {
                       }}
                     />
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.375rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.375rem', fontSize: '0.75rem', color: 'var(--color-text-[var(--sys-text-muted)])' }}>
                     <span>{policy.passed} passed / {policy.failed} failed</span>
                     <span>{policy.total_checks} total checks</span>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: 'var(--color-text-[var(--sys-text-muted)])' }}>
                   <span>Last scan: {new Date(policy.last_scan).toLocaleString()}</span>
                   <button
                     style={{
@@ -482,7 +482,7 @@ export default function ScaVulnerabilitiesPage() {
                       background: 'transparent',
                       border: '1px solid var(--color-border)',
                       borderRadius: 'var(--radius-md)',
-                      color: 'var(--color-text-secondary)',
+                      color: 'var(--color-text-[var(--sys-text-secondary)])',
                       fontSize: '0.75rem',
                       cursor: 'pointer',
                     }}

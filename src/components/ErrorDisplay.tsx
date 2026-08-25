@@ -16,9 +16,9 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
       style={{
         padding: '1.5rem',
         borderRadius: 'var(--radius-lg)',
-        background: 'color-mix(in srgb, var(--color-critical) 10%, var(--color-bg-surface))',
+        background: 'color-mix(in srgb, var(--color-critical) 10%, var(--color-bg-[var(--sys-bg-surface)]))',
         border: '1px solid var(--color-critical)',
-        color: 'var(--color-text-primary)',
+        color: 'var(--color-text-[var(--sys-text-primary)])',
         display: 'flex',
         flexDirection: 'column',
         gap: '0.75rem',
@@ -31,7 +31,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
         </svg>
         <h4 style={{ color: 'var(--color-critical)', margin: 0 }}>{title}</h4>
       </div>
-      <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', margin: 0 }}>{message}</p>
+      <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.875rem', margin: 0 }}>{message}</p>
       {onRetry && (
         <button
           onClick={onRetry}

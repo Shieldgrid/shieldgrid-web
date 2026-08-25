@@ -161,25 +161,25 @@ function ToolOutputBlock({ raw }: { raw: string }) {
   const shouldCollapse = lineCount > 15;
 
   return (
-    <div style={{ border: '1px solid #333340', borderRadius: '2px', overflow: 'hidden', background: '#121212' }}>
+    <div style={{ border: '1px solid var(--sys-border)', borderRadius: '2px', overflow: 'hidden', background: 'var(--sys-bg-base)' }}>
       <button
         onClick={() => shouldCollapse && setExpanded(!expanded)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0.375rem 0.625rem', fontSize: '0.7rem', color: '#555560',
+          padding: '0.375rem 0.625rem', fontSize: '0.85rem', color: 'var(--sys-text-muted)',
           background: 'transparent', border: 'none', cursor: shouldCollapse ? 'pointer' : 'default',
           fontFamily: 'var(--font-mono)',
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-          <Wrench size={11} style={{ color: '#6B7B99' }} />
+          <Wrench size={11} style={{ color: 'var(--color-accent)' }} />
           TOOL OUTPUT
           {!expanded && shouldCollapse && <span style={{ color: '#444' }}>({lineCount} lines)</span>}
         </span>
         {shouldCollapse && <span>{expanded ? '[COLLAPSE]' : '[EXPAND]'}</span>}
       </button>
       {(expanded || !shouldCollapse) && (
-        <div style={{ padding: '0.5rem 0.75rem', borderTop: '1px solid #333340' }} className="prose prose-invert prose-sm max-w-none">
+        <div style={{ padding: '0.5rem 0.75rem', borderTop: '1px solid var(--sys-border)' }} className="prose prose-invert prose-sm max-w-none">
           <Markdown>{formatted}</Markdown>
         </div>
       )}
@@ -341,35 +341,35 @@ export default function AiDashboardPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 28px)', overflow: 'hidden' }}>
       {/* ── Top Bar: Posture + Controls ───────────────────────────────────── */}
-      <div style={{ flexShrink: 0, borderBottom: '1px solid #333340' }}>
+      <div style={{ flexShrink: 0, borderBottom: '1px solid var(--sys-border)' }}>
         {/* Header Row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Terminal size={16} style={{ color: '#6B7B99' }} />
-            <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#E0E0E0', fontFamily: 'var(--font-mono)' }}>AI ANALYST</span>
-            <span style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>// AUTONOMOUS TRIAGE | MITRE | ACTIVE RESPONSE</span>
+            <Terminal size={16} style={{ color: 'var(--color-accent)' }} />
+            <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--sys-text-primary)', fontFamily: 'var(--font-mono)' }}>AI ANALYST</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)' }}>// AUTONOMOUS TRIAGE | MITRE | ACTIVE RESPONSE</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
             {/* Triage Toggle */}
             <button
               onClick={() => setTriageOpen(!triageOpen)}
               className="btn"
-              style={{ fontFamily: 'var(--font-mono)', borderColor: triageOpen ? '#E5A93B' : undefined, color: triageOpen ? '#E5A93B' : undefined }}
+              style={{ fontFamily: 'var(--font-mono)', borderColor: triageOpen ? 'var(--color-warning)' : undefined, color: triageOpen ? 'var(--color-warning)' : undefined }}
             >
               <Search size={12} /> TRIAGE {triageOpen ? 'ON' : 'OFF'}
             </button>
             {/* MCP Status */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', background: '#1E1E24', border: '1px solid #333340', borderRadius: '2px', fontSize: '0.6rem', fontFamily: 'var(--font-mono)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', background: 'var(--sys-bg-surface)', border: '1px solid var(--sys-border)', borderRadius: '2px', fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}>
               <span className={`status-dot ${mcpStatus === 'connected' ? 'ok' : mcpStatus === 'error' ? 'error' : 'warn'}`} />
-              <span style={{ color: '#8A8A96' }}>{mcpStatus === 'connected' ? `${mcpToolsRef.current.length} TOOLS` : 'OFFLINE'}</span>
+              <span style={{ color: 'var(--sys-text-secondary)' }}>{mcpStatus === 'connected' ? `${mcpToolsRef.current.length} TOOLS` : 'OFFLINE'}</span>
             </div>
             {/* Posture (compact inline) */}
             {posture && !loadingPosture && (
-              <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.6rem', fontFamily: 'var(--font-mono)', color: '#555560' }}>
-                <span><span style={{ color: '#E5A93B' }}>{posture.open_alerts_count}</span> ALERTS</span>
-                <span><span style={{ color: '#D32F2F' }}>{posture.critical_alerts_count}</span> CRIT</span>
-                <span><span style={{ color: '#8A8A96' }}>{posture.active_cases_count}</span> CASES</span>
-                <span><span style={{ color: '#4CAF50' }}>{posture.executed_actions_count}</span> ACTIONS</span>
+              <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--sys-text-muted)' }}>
+                <span><span style={{ color: 'var(--color-warning)' }}>{posture.open_alerts_count}</span> ALERTS</span>
+                <span><span style={{ color: 'var(--color-critical)' }}>{posture.critical_alerts_count}</span> CRIT</span>
+                <span><span style={{ color: 'var(--sys-text-secondary)' }}>{posture.active_cases_count}</span> CASES</span>
+                <span><span style={{ color: 'var(--color-success)' }}>{posture.executed_actions_count}</span> ACTIONS</span>
               </div>
             )}
             <button onClick={() => setShowSettings(!showSettings)} className="btn" style={{ fontFamily: 'var(--font-mono)' }}>
@@ -383,16 +383,16 @@ export default function AiDashboardPage() {
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         {/* Triage Sidebar (collapsible) */}
         {triageOpen && (
-          <div style={{ width: '320px', minWidth: '320px', borderRight: '1px solid #333340', background: '#1A1A22', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ width: '320px', minWidth: '320px', borderRight: '1px solid var(--sys-border)', background: 'var(--sys-bg-surface)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* Sidebar Header */}
-            <div style={{ padding: '0.5rem 0.625rem', borderBottom: '1px solid #333340', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: '#555560', textTransform: 'uppercase' }}>AUTONOMOUS TRIAGE</span>
-              <button onClick={() => setTriageOpen(false)} style={{ background: 'none', border: 'none', color: '#555560', cursor: 'pointer', fontSize: '0.6rem', fontFamily: 'var(--font-mono)' }}>X</button>
+            <div style={{ padding: '0.5rem 0.625rem', borderBottom: '1px solid var(--sys-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: 'var(--sys-text-muted)', textTransform: 'uppercase' }}>AUTONOMOUS TRIAGE</span>
+              <button onClick={() => setTriageOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--sys-text-muted)', cursor: 'pointer', fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}>X</button>
             </div>
 
             {/* Triage Input */}
-            <div style={{ padding: '0.5rem 0.625rem', borderBottom: '1px solid #333340' }}>
-              <p style={{ fontSize: '0.6rem', color: '#444', fontFamily: 'var(--font-mono)', margin: '0 0 0.375rem' }}>
+            <div style={{ padding: '0.5rem 0.625rem', borderBottom: '1px solid var(--sys-border)' }}>
+              <p style={{ fontSize: '0.75rem', color: '#444', fontFamily: 'var(--font-mono)', margin: '0 0 0.375rem' }}>
                 UUID, IP, DOMAIN, HASH, CVE
               </p>
               <div style={{ display: 'flex', gap: '0.25rem' }}>
@@ -408,7 +408,7 @@ export default function AiDashboardPage() {
                     style={{ width: '100%', paddingLeft: '1.5rem', fontSize: '0.75rem' }}
                   />
                 </div>
-                <button onClick={handleRunTriage} disabled={triaging || !triageTarget.trim()} className="btn btn-primary" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', padding: '0.375rem 0.5rem' }}>
+                <button onClick={handleRunTriage} disabled={triaging || !triageTarget.trim()} className="btn btn-primary" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', padding: '0.375rem 0.5rem' }}>
                   <Play size={11} className={triaging ? 'animate-spin' : ''} />
                 </button>
               </div>
@@ -418,15 +418,15 @@ export default function AiDashboardPage() {
             <div style={{ flex: 1, overflowY: 'auto', padding: '0.5rem 0.625rem' }}>
               {!triageReport && !triaging && (
                 <div style={{ textAlign: 'center', padding: '2rem 0.5rem' }}>
-                  <Search size={20} style={{ color: '#333340', marginBottom: '0.375rem' }} />
-                  <p style={{ fontSize: '0.65rem', color: '#444', fontFamily: 'var(--font-mono)' }}>AWAITING INPUT</p>
+                  <Search size={20} style={{ color: 'var(--sys-border)', marginBottom: '0.375rem' }} />
+                  <p style={{ fontSize: '0.8rem', color: '#444', fontFamily: 'var(--font-mono)' }}>AWAITING INPUT</p>
                 </div>
               )}
 
               {triaging && (
                 <div style={{ textAlign: 'center', padding: '2rem 0.5rem' }}>
-                  <Activity size={16} className="animate-pulse" style={{ color: '#6B7B99', marginBottom: '0.375rem' }} />
-                  <p style={{ fontSize: '0.65rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>ANALYZING...</p>
+                  <Activity size={16} className="animate-pulse" style={{ color: 'var(--color-accent)', marginBottom: '0.375rem' }} />
+                  <p style={{ fontSize: '0.8rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)' }}>ANALYZING...</p>
                 </div>
               )}
 
@@ -435,26 +435,26 @@ export default function AiDashboardPage() {
                   {/* Verdict + Score */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                      <span style={{ fontSize: '0.6rem', fontFamily: 'var(--font-mono)', color: '#444' }}>VERDICT</span>
+                      <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: '#444' }}>VERDICT</span>
                       {getVerdictBadge(triageReport.verdict)}
                     </div>
-                    <span style={{ fontSize: '0.8125rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#E0E0E0' }}>
-                      {triageReport.risk_score}<span style={{ fontSize: '0.6rem', color: '#555560' }}>/100</span>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--sys-text-primary)' }}>
+                      {triageReport.risk_score}<span style={{ fontSize: '0.75rem', color: 'var(--sys-text-muted)' }}>/100</span>
                     </span>
                   </div>
 
                   {/* Score bar */}
-                  <div style={{ width: '100%', height: '3px', background: '#121212', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ width: '100%', height: '3px', background: 'var(--sys-bg-base)', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{
                       height: '100%', borderRadius: '2px',
-                      background: triageReport.risk_score >= 80 ? '#D32F2F' : triageReport.risk_score >= 50 ? '#E5A93B' : '#4CAF50',
+                      background: triageReport.risk_score >= 80 ? 'var(--color-critical)' : triageReport.risk_score >= 50 ? 'var(--color-warning)' : 'var(--color-success)',
                       width: `${triageReport.risk_score}%`, transition: 'width 500ms',
                     }} />
                   </div>
 
                   {/* Summary */}
-                  <div style={{ padding: '0.375rem 0.5rem', background: '#121212', border: '1px solid #333340', borderRadius: '2px' }}>
-                    <p style={{ fontSize: '0.65rem', color: '#8A8A96', fontFamily: 'var(--font-mono)', margin: 0, lineHeight: 1.5 }}>{triageReport.summary}</p>
+                  <div style={{ padding: '0.375rem 0.5rem', background: 'var(--sys-bg-base)', border: '1px solid var(--sys-border)', borderRadius: '2px' }}>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--sys-text-secondary)', fontFamily: 'var(--font-mono)', margin: 0, lineHeight: 1.5 }}>{triageReport.summary}</p>
                   </div>
 
                   {/* MITRE */}
@@ -463,7 +463,7 @@ export default function AiDashboardPage() {
                       <label style={{ fontSize: '0.55rem', fontFamily: 'var(--font-mono)', color: '#444', display: 'block', marginBottom: '0.25rem' }}>MITRE</label>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
                         {triageReport.mitre_techniques.map((tech) => (
-                          <span key={tech} style={{ padding: '0.125rem 0.375rem', background: '#121212', border: '1px solid #333340', borderRadius: '2px', fontSize: '0.6rem', fontFamily: 'var(--font-mono)', color: '#6B7B99' }}>
+                          <span key={tech} style={{ padding: '0.125rem 0.375rem', background: 'var(--sys-bg-base)', border: '1px solid var(--sys-border)', borderRadius: '2px', fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>
                             {tech}
                           </span>
                         ))}
@@ -474,15 +474,15 @@ export default function AiDashboardPage() {
                   {/* Actions */}
                   {triageReport.recommended_actions.length > 0 && (
                     <div>
-                      <label style={{ fontSize: '0.55rem', fontFamily: 'var(--font-mono)', color: '#E5A93B', display: 'block', marginBottom: '0.25rem' }}>ACTIONS</label>
+                      <label style={{ fontSize: '0.55rem', fontFamily: 'var(--font-mono)', color: 'var(--color-warning)', display: 'block', marginBottom: '0.25rem' }}>ACTIONS</label>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                         {triageReport.recommended_actions.map((act, idx) => (
-                          <div key={idx} style={{ padding: '0.375rem 0.5rem', background: '#121212', border: '1px solid #333340', borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div key={idx} style={{ padding: '0.375rem 0.5rem', background: 'var(--sys-bg-base)', border: '1px solid var(--sys-border)', borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <div>
-                              <div style={{ fontSize: '0.7rem', color: '#E0E0E0' }}>{act.display_name}</div>
-                              <div style={{ fontSize: '0.6rem', color: '#444', fontFamily: 'var(--font-mono)' }}>{act.description}</div>
+                              <div style={{ fontSize: '0.85rem', color: 'var(--sys-text-primary)' }}>{act.display_name}</div>
+                              <div style={{ fontSize: '0.75rem', color: '#444', fontFamily: 'var(--font-mono)' }}>{act.description}</div>
                             </div>
-                            <button onClick={() => setDispatchTemplate(act.template_name)} style={{ background: 'none', border: '1px solid #E5A93B', color: '#E5A93B', padding: '0.125rem 0.375rem', borderRadius: '2px', cursor: 'pointer', fontSize: '0.6rem', fontFamily: 'var(--font-mono)' }}>
+                            <button onClick={() => setDispatchTemplate(act.template_name)} style={{ background: 'none', border: '1px solid var(--color-warning)', color: 'var(--color-warning)', padding: '0.125rem 0.375rem', borderRadius: '2px', cursor: 'pointer', fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}>
                               DISPATCH
                             </button>
                           </div>
@@ -497,12 +497,12 @@ export default function AiDashboardPage() {
         )}
 
         {/* ── Full-Screen AI Chat ─────────────────────────────────────────── */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#121212' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--sys-bg-base)' }}>
           {/* Chat Header */}
-          <div style={{ flexShrink: 0, padding: '0.5rem 0.75rem', borderBottom: '1px solid #333340', background: '#1A1A22', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ flexShrink: 0, padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--sys-border)', background: 'var(--sys-bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-              <Terminal size={14} style={{ color: '#6B7B99' }} />
-              <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: '#8A8A96' }}>SOC ASSISTANT</span>
+              <Terminal size={14} style={{ color: 'var(--color-accent)' }} />
+              <span style={{ fontSize: '0.85rem', fontFamily: 'var(--font-mono)', color: 'var(--sys-text-secondary)' }}>SOC ASSISTANT</span>
               <span style={{ fontSize: '0.55rem', fontFamily: 'var(--font-mono)', color: '#444' }}>// MODEL: {model}</span>
             </div>
             <span style={{ fontSize: '0.55rem', fontFamily: 'var(--font-mono)', color: '#444' }}>{messages.length} MESSAGES</span>
@@ -513,13 +513,13 @@ export default function AiDashboardPage() {
             {messages.length === 0 && (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
                 <Terminal size={48} style={{ color: '#222', marginBottom: '0.75rem' }} />
-                <h4 style={{ fontSize: '1rem', color: '#555560', fontWeight: 600, margin: '0 0 0.375rem', fontFamily: 'var(--font-mono)' }}>SYSTEM READY</h4>
+                <h4 style={{ fontSize: '1rem', color: 'var(--sys-text-muted)', fontWeight: 600, margin: '0 0 0.375rem', fontFamily: 'var(--font-mono)' }}>SYSTEM READY</h4>
                 <p style={{ fontSize: '0.75rem', color: '#444', fontFamily: 'var(--font-mono)', maxWidth: '400px', lineHeight: 1.6 }}>
                   Query alerts, triage threats, lookup intel, or trigger response actions.
                 </p>
                 <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '0.375rem', justifyContent: 'center' }}>
                   {['Show critical alerts', 'List Wazuh agents', 'Check system health', 'Triage this environment'].map((q) => (
-                    <button key={q} onClick={() => { setInput(q); }} style={{ padding: '0.25rem 0.625rem', background: '#1E1E24', border: '1px solid #333340', borderRadius: '2px', color: '#6B7B99', fontSize: '0.7rem', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>
+                    <button key={q} onClick={() => { setInput(q); }} style={{ padding: '0.25rem 0.625rem', background: 'var(--sys-bg-surface)', border: '1px solid var(--sys-border)', borderRadius: '2px', color: 'var(--color-accent)', fontSize: '0.85rem', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>
                       {q}
                     </button>
                   ))}
@@ -534,8 +534,8 @@ export default function AiDashboardPage() {
                 <div key={idx} style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
                   <div style={{
                     maxWidth: '75%', padding: '0.625rem 0.875rem', borderRadius: '2px',
-                    background: isUser ? '#2A2A32' : '#1A1A22',
-                    border: '1px solid #333340', fontSize: '0.8125rem', lineHeight: 1.6,
+                    background: isUser ? 'var(--sys-bg-elevated)' : 'var(--sys-bg-surface)',
+                    border: '1px solid var(--sys-border)', fontSize: '0.8125rem', lineHeight: 1.6,
                   }}>
                     <div style={{ fontSize: '0.55rem', fontFamily: 'var(--font-mono)', color: '#444', marginBottom: '0.375rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       {isUser ? 'SOC_ANALYST' : 'SG_AI'}
@@ -545,7 +545,7 @@ export default function AiDashboardPage() {
                         <Markdown>{msg.content}</Markdown>
                       </div>
                     ) : (
-                      <div style={{ color: '#E0E0E0', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+                      <div style={{ color: 'var(--sys-text-primary)', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
                     )}
                   </div>
                 </div>
@@ -553,8 +553,8 @@ export default function AiDashboardPage() {
             })}
 
             {isProcessing && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: '#555560' }}>
-                <Activity size={12} className="animate-pulse" style={{ color: '#6B7B99' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: 'var(--sys-text-muted)' }}>
+                <Activity size={12} className="animate-pulse" style={{ color: 'var(--color-accent)' }} />
                 PROCESSING // QUERYING MCP TOOLS...
               </div>
             )}
@@ -562,7 +562,7 @@ export default function AiDashboardPage() {
           </div>
 
           {/* Chat Input (full width) */}
-          <div style={{ flexShrink: 0, padding: '0.625rem 1rem', borderTop: '1px solid #333340', display: 'flex', gap: '0.5rem', background: '#1A1A22' }}>
+          <div style={{ flexShrink: 0, padding: '0.625rem 1rem', borderTop: '1px solid var(--sys-border)', display: 'flex', gap: '0.5rem', background: 'var(--sys-bg-surface)' }}>
             <input
               type="text"
               value={input}
@@ -588,15 +588,15 @@ export default function AiDashboardPage() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div>
-                <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>ENDPOINT URL</label>
+                <label style={{ fontSize: '0.75rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)' }}>ENDPOINT URL</label>
                 <input type="text" value={endpoint} onChange={(e) => setEndpoint(e.target.value)} className="input" style={{ width: '100%', marginTop: '0.125rem' }} />
               </div>
               <div>
-                <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>API KEY</label>
+                <label style={{ fontSize: '0.75rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)' }}>API KEY</label>
                 <input type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} className="input" style={{ width: '100%', marginTop: '0.125rem' }} />
               </div>
               <div>
-                <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>MODEL</label>
+                <label style={{ fontSize: '0.75rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)' }}>MODEL</label>
                 {availableModels.length > 0 ? (
                   <select value={model} onChange={(e) => setModel(e.target.value)} className="input" style={{ width: '100%', marginTop: '0.125rem' }}>
                     {availableModels.map((m) => <option key={m} value={m}>{m}</option>)}
@@ -604,12 +604,12 @@ export default function AiDashboardPage() {
                 ) : (
                   <input type="text" value={model} onChange={(e) => setModel(e.target.value)} className="input" style={{ width: '100%', marginTop: '0.125rem' }} />
                 )}
-                <button onClick={handleFetchModels} style={{ marginTop: '0.25rem', background: 'none', border: 'none', color: '#6B7B99', cursor: 'pointer', fontSize: '0.65rem', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <button onClick={handleFetchModels} style={{ marginTop: '0.25rem', background: 'none', border: 'none', color: 'var(--color-accent)', cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                   <ChevronRight size={10} /> FETCH MODELS
                 </button>
               </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.375rem', paddingTop: '0.5rem', borderTop: '1px solid #333340' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.375rem', paddingTop: '0.5rem', borderTop: '1px solid var(--sys-border)' }}>
               <button onClick={() => setShowSettings(false)} className="btn">CANCEL</button>
               <button onClick={handleSaveSettings} className="btn btn-primary">SAVE</button>
             </div>

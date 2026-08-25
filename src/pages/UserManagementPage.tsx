@@ -128,16 +128,16 @@ const UserManagementPage: React.FC = () => {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800';
-      case 'analyst': return 'bg-blue-100 text-blue-800';
-      case 'viewer': return 'bg-green-100 text-green-800';
-      case 'api_only': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'admin': return 'bg-red-500/20 text-red-400';
+      case 'analyst': return 'bg-blue-500/20 text-blue-400';
+      case 'viewer': return 'bg-emerald-500/20 text-emerald-400';
+      case 'api_only': return 'bg-purple-500/20 text-purple-400';
+      default: return 'bg-[var(--sys-bg-elevated)] text-gray-300';
     }
   };
 
   const getStatusColor = (isActive: boolean) => {
-    return isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
+    return isActive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-[var(--sys-bg-elevated)] text-gray-300';
   };
 
   const formatDate = (dateString: string) => {
@@ -224,48 +224,48 @@ const UserManagementPage: React.FC = () => {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+        <h1 className="text-2xl font-bold text-[var(--sys-text-primary)] flex items-center">
           <Users className="mr-2 text-blue-500" />
           User Management
         </h1>
-        <p className="text-gray-600 mt-1">Manage user accounts, roles, and permissions</p>
+        <p className="text-[var(--sys-text-muted)] mt-1">Manage user accounts, roles, and permissions</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-[var(--sys-bg-surface)] p-4 rounded-lg border border-[var(--sys-border)]">
           <div className="flex items-center">
             <Users className="h-8 w-8 text-blue-500" />
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Total Users</p>
-              <p className="text-lg font-semibold text-gray-900">{users.length}</p>
+              <p className="text-sm font-medium text-[var(--sys-text-muted)]">Total Users</p>
+              <p className="text-lg font-semibold text-[var(--sys-text-primary)]">{users.length}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-[var(--sys-bg-surface)] p-4 rounded-lg border border-[var(--sys-border)]">
           <div className="flex items-center">
             <Shield className="h-8 w-8 text-red-500" />
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Admins</p>
-              <p className="text-lg font-semibold text-gray-900">{users.filter(u => u.role === 'admin').length}</p>
+              <p className="text-sm font-medium text-[var(--sys-text-muted)]">Admins</p>
+              <p className="text-lg font-semibold text-[var(--sys-text-primary)]">{users.filter(u => u.role === 'admin').length}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-[var(--sys-bg-surface)] p-4 rounded-lg border border-[var(--sys-border)]">
           <div className="flex items-center">
             <Lock className="h-8 w-8 text-green-500" />
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">MFA Enabled</p>
-              <p className="text-lg font-semibold text-gray-900">{users.filter(u => u.mfa_enabled).length}</p>
+              <p className="text-sm font-medium text-[var(--sys-text-muted)]">MFA Enabled</p>
+              <p className="text-lg font-semibold text-[var(--sys-text-primary)]">{users.filter(u => u.mfa_enabled).length}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-[var(--sys-bg-surface)] p-4 rounded-lg border border-[var(--sys-border)]">
           <div className="flex items-center">
             <Mail className="h-8 w-8 text-purple-500" />
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Active</p>
-              <p className="text-lg font-semibold text-gray-900">{users.filter(u => u.is_active).length}</p>
+              <p className="text-sm font-medium text-[var(--sys-text-muted)]">Active</p>
+              <p className="text-lg font-semibold text-[var(--sys-text-primary)]">{users.filter(u => u.is_active).length}</p>
             </div>
           </div>
         </div>
@@ -275,11 +275,11 @@ const UserManagementPage: React.FC = () => {
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="flex-1">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--sys-text-muted)] h-4 w-4" />
             <input
               type="text"
               placeholder="Search users..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-[var(--sys-border)] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -287,7 +287,7 @@ const UserManagementPage: React.FC = () => {
         </div>
         <div className="flex gap-2">
           <select
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-[var(--sys-border)] rounded-lg focus:ring-2 focus:ring-blue-500"
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
           >
@@ -299,7 +299,7 @@ const UserManagementPage: React.FC = () => {
           </select>
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center"
+            className="px-4 py-2 bg-blue-500 text-[var(--sys-text-primary)] rounded-lg hover:bg-blue-600 flex items-center"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add User
@@ -308,50 +308,50 @@ const UserManagementPage: React.FC = () => {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-[var(--sys-bg-surface)] rounded-lg border border-[var(--sys-border)] overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-[var(--sys-border)]">
+            <thead className="bg-[var(--sys-bg-base)]">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--sys-text-muted)] uppercase tracking-wider">
                   User
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--sys-text-muted)] uppercase tracking-wider">
                   Role
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--sys-text-muted)] uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--sys-text-muted)] uppercase tracking-wider">
                   Last Login
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--sys-text-muted)] uppercase tracking-wider">
                   MFA
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--sys-text-muted)] uppercase tracking-wider">
                   Permissions
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-[var(--sys-text-muted)] uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-[var(--sys-bg-surface)] divide-y divide-[var(--sys-border)]">
               {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
+                <tr key={user.id} className="hover:bg-[var(--sys-bg-base)]">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                          <span className="text-sm font-medium text-gray-700">
+                        <div className="h-10 w-10 rounded-full bg-[var(--sys-border)] flex items-center justify-center">
+                          <span className="text-sm font-medium text-gray-300">
                             {user.full_name.split(' ').map(n => n[0]).join('')}
                           </span>
                         </div>
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{user.full_name}</div>
-                        <div className="text-sm text-gray-500">{user.email}</div>
-                        <div className="text-xs text-gray-400">@{user.username}</div>
+                        <div className="text-sm font-medium text-[var(--sys-text-primary)]">{user.full_name}</div>
+                        <div className="text-sm text-[var(--sys-text-muted)]">{user.email}</div>
+                        <div className="text-xs text-[var(--sys-text-muted)]">@{user.username}</div>
                       </div>
                     </div>
                   </td>
@@ -365,17 +365,17 @@ const UserManagementPage: React.FC = () => {
                       {user.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--sys-text-muted)]">
                     {user.last_login ? formatDate(user.last_login) : 'Never'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {user.mfa_enabled ? (
                       <Lock className="h-4 w-4 text-green-500" />
                     ) : (
-                      <Unlock className="h-4 w-4 text-gray-400" />
+                      <Unlock className="h-4 w-4 text-[var(--sys-text-muted)]" />
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--sys-text-muted)]">
                     {user.permissions.length} permissions
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -413,49 +413,49 @@ const UserManagementPage: React.FC = () => {
       {/* Add User Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-[var(--sys-bg-surface)] rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Add New User</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Username</label>
+                <label className="block text-sm font-medium text-gray-300">Username</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[var(--sys-border)] rounded-lg focus:ring-2 focus:ring-blue-500"
                   value={newUser.username}
                   onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <label className="block text-sm font-medium text-gray-300">Email</label>
                 <input
                   type="email"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[var(--sys-border)] rounded-lg focus:ring-2 focus:ring-blue-500"
                   value={newUser.email}
                   onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                <label className="block text-sm font-medium text-gray-300">Full Name</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[var(--sys-border)] rounded-lg focus:ring-2 focus:ring-blue-500"
                   value={newUser.full_name}
                   onChange={(e) => setNewUser({ ...newUser, full_name: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Password</label>
+                <label className="block text-sm font-medium text-gray-300">Password</label>
                 <input
                   type="password"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[var(--sys-border)] rounded-lg focus:ring-2 focus:ring-blue-500"
                   value={newUser.password}
                   onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Role</label>
+                <label className="block text-sm font-medium text-gray-300">Role</label>
                 <select
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[var(--sys-border)] rounded-lg focus:ring-2 focus:ring-blue-500"
                   value={newUser.role}
                   onChange={(e) => setNewUser({ ...newUser, role: e.target.value as any })}
                 >
@@ -466,11 +466,11 @@ const UserManagementPage: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
-                <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">Permissions</label>
+                <div className="max-h-40 overflow-y-auto border border-[var(--sys-border)] rounded-lg p-2">
                   {Object.entries(getPermissionCategories()).map(([category, perms]) => (
                     <div key={category} className="mb-2">
-                      <div className="text-xs font-semibold text-gray-500 uppercase mb-1">{category}</div>
+                      <div className="text-xs font-semibold text-[var(--sys-text-muted)] uppercase mb-1">{category}</div>
                       {perms.map(perm => (
                         <label key={perm.id} className="flex items-center space-x-2 text-sm">
                           <input
@@ -483,7 +483,7 @@ const UserManagementPage: React.FC = () => {
                                 setNewUser({ ...newUser, permissions: newUser.permissions.filter(p => p !== perm.id) });
                               }
                             }}
-                            className="rounded border-gray-300"
+                            className="rounded border-[var(--sys-border)]"
                           />
                           <span>{perm.name}</span>
                         </label>
@@ -496,13 +496,13 @@ const UserManagementPage: React.FC = () => {
             <div className="flex justify-end space-x-2 mt-6">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                className="px-4 py-2 text-[var(--sys-text-muted)] hover:text-gray-300"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateUser}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                className="px-4 py-2 bg-blue-500 text-[var(--sys-text-primary)] rounded-lg hover:bg-blue-600"
               >
                 Create User
               </button>
@@ -514,40 +514,40 @@ const UserManagementPage: React.FC = () => {
       {/* Edit User Modal */}
       {showEditModal && selectedUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-[var(--sys-bg-surface)] rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Edit User</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Username</label>
+                <label className="block text-sm font-medium text-gray-300">Username</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[var(--sys-border)] rounded-lg focus:ring-2 focus:ring-blue-500"
                   value={selectedUser.username}
                   disabled
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <label className="block text-sm font-medium text-gray-300">Email</label>
                 <input
                   type="email"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[var(--sys-border)] rounded-lg focus:ring-2 focus:ring-blue-500"
                   value={selectedUser.email}
                   onChange={(e) => setSelectedUser({ ...selectedUser, email: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                <label className="block text-sm font-medium text-gray-300">Full Name</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[var(--sys-border)] rounded-lg focus:ring-2 focus:ring-blue-500"
                   value={selectedUser.full_name}
                   onChange={(e) => setSelectedUser({ ...selectedUser, full_name: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Role</label>
+                <label className="block text-sm font-medium text-gray-300">Role</label>
                 <select
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[var(--sys-border)] rounded-lg focus:ring-2 focus:ring-blue-500"
                   value={selectedUser.role}
                   onChange={(e) => setSelectedUser({ ...selectedUser, role: e.target.value as any })}
                 >
@@ -558,40 +558,40 @@ const UserManagementPage: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <label className="block text-sm font-medium text-gray-300">Status</label>
                 <div className="flex items-center space-x-2">
                   <input
                     type="checkbox"
                     checked={selectedUser.is_active}
                     onChange={(e) => setSelectedUser({ ...selectedUser, is_active: e.target.checked })}
-                    className="rounded border-gray-300"
+                    className="rounded border-[var(--sys-border)]"
                   />
-                  <span className="text-sm text-gray-700">Active</span>
+                  <span className="text-sm text-gray-300">Active</span>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">MFA Enabled</label>
+                <label className="block text-sm font-medium text-gray-300">MFA Enabled</label>
                 <div className="flex items-center space-x-2">
                   <input
                     type="checkbox"
                     checked={selectedUser.mfa_enabled}
                     onChange={(e) => setSelectedUser({ ...selectedUser, mfa_enabled: e.target.checked })}
-                    className="rounded border-gray-300"
+                    className="rounded border-[var(--sys-border)]"
                   />
-                  <span className="text-sm text-gray-700">Enable Multi-Factor Authentication</span>
+                  <span className="text-sm text-gray-300">Enable Multi-Factor Authentication</span>
                 </div>
               </div>
             </div>
             <div className="flex justify-end space-x-2 mt-6">
               <button
                 onClick={() => setShowEditModal(false)}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                className="px-4 py-2 text-[var(--sys-text-muted)] hover:text-gray-300"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleUpdateUser(selectedUser.id, selectedUser)}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                className="px-4 py-2 bg-blue-500 text-[var(--sys-text-primary)] rounded-lg hover:bg-blue-600"
               >
                 Save Changes
               </button>

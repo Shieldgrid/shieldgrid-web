@@ -11,10 +11,10 @@
 
 /* ── Design Tokens ─────────────────────────────────────────────────────────── */
 @theme {
-  /* Palette — Industrial Dark */
-  --color-bg-base:       #121212;  /* Deep matte charcoal */
-  --color-bg-surface:    #1E1E24;  /* Card/panel background */
-  --color-bg-elevated:   #2A2A32;  /* Elevated surface — dropdowns, tooltips */
+  /* Dynamic Palette Map */
+  --color-bg-base:       var(--sys-bg-base);
+  --color-bg-surface:    var(--sys-bg-surface);
+  --color-bg-elevated:   var(--sys-bg-elevated);
 
   /* Accents — sparse, data/status only */
   --color-accent:        #6B7B99;  /* Muted slate — interactive elements */
@@ -22,14 +22,14 @@
   --color-critical:      #D32F2F;  /* Muted red — critical, down */
   --color-success:       #4CAF50;  /* Tactical green — healthy, resolved */
 
-  /* Text */
-  --color-text-primary:  #E0E0E0;  /* Off-white — headings, key values */
-  --color-text-secondary:#8A8A96;  /* Muted grey — metadata, timestamps */
-  --color-text-muted:    #555560;  /* Dim — disabled, hints */
+  /* Dynamic Text Map */
+  --color-text-primary:  var(--sys-text-primary);
+  --color-text-secondary:var(--sys-text-secondary);
+  --color-text-muted:    var(--sys-text-muted);
 
-  /* Borders — structural separators */
-  --color-border:        #333340;  /* Primary border */
-  --color-border-subtle: #2A2A32;  /* Subtle divider */
+  /* Dynamic Borders Map */
+  --color-border:        var(--sys-border);
+  --color-border-subtle: var(--sys-border-subtle);
 
   /* Typography */
   --font-sans:   'Inter', system-ui, -apple-system, sans-serif;
@@ -43,6 +43,31 @@
   /* Transitions */
   --transition-fast: 100ms ease;
   --transition-base: 150ms ease;
+}
+
+/* ── Theming System ─────────────────────────────────────────────────────────── */
+:root {
+  /* Dark Mode (Default) */
+  --sys-bg-base:       #121212;
+  --sys-bg-surface:    #1E1E24;
+  --sys-bg-elevated:   #2A2A32;
+  --sys-text-primary:  #E0E0E0;
+  --sys-text-secondary:#8A8A96;
+  --sys-text-muted:    #555560;
+  --sys-border:        #333340;
+  --sys-border-subtle: #2A2A32;
+}
+
+:root[data-theme="light"] {
+  /* Smoother Industrial Light Mode */
+  --sys-bg-base:       #F2F2F5;  /* Soft industrial grey-white */
+  --sys-bg-surface:    #FFFFFF;  /* Clean white card */
+  --sys-bg-elevated:   #FAFAFA;
+  --sys-text-primary:  #1A1A1E;  /* Very dark grey, not pure black */
+  --sys-text-secondary:#5B5B66;  /* Muted grey */
+  --sys-text-muted:    #8A8A96;
+  --sys-border:        #E2E2E8;  /* Crisp light border */
+  --sys-border-subtle: #F0F0F4;
 }
 
 /* ── Base Styles ────────────────────────────────────────────────────────────── */

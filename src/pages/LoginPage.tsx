@@ -36,7 +36,7 @@ export default function LoginPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--color-bg-base)',
+        background: 'var(--color-bg-[var(--sys-bg-base)])',
         padding: '1rem',
       }}
     >
@@ -44,7 +44,7 @@ export default function LoginPage() {
         style={{
           width: '100%',
           maxWidth: '400px',
-          background: 'var(--color-bg-surface)',
+          background: 'var(--color-bg-[var(--sys-bg-surface)])',
           border: '1px solid var(--color-border)',
           borderRadius: 'var(--radius-lg)',
           padding: '2.5rem 2rem',
@@ -58,7 +58,7 @@ export default function LoginPage() {
             style={{ width: '48px', height: '48px', margin: '0 auto 0.75rem', display: 'block' }}
           />
           <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Shieldgrid</h2>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+          <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.875rem', marginTop: '0.25rem' }}>
             SOC Operations Platform
           </p>
         </div>
@@ -94,9 +94,9 @@ export default function LoginPage() {
                 width: '100%',
                 padding: '0.625rem 0.875rem',
                 borderRadius: 'var(--radius-md)',
-                background: 'var(--color-bg-base)',
+                background: 'var(--color-bg-[var(--sys-bg-base)])',
                 border: '1px solid var(--color-border)',
-                color: 'var(--color-text-primary)',
+                color: 'var(--color-text-[var(--sys-text-primary)])',
                 fontSize: '0.875rem',
               }}
             />
@@ -115,9 +115,9 @@ export default function LoginPage() {
                 width: '100%',
                 padding: '0.625rem 0.875rem',
                 borderRadius: 'var(--radius-md)',
-                background: 'var(--color-bg-base)',
+                background: 'var(--color-bg-[var(--sys-bg-base)])',
                 border: '1px solid var(--color-border)',
-                color: 'var(--color-text-primary)',
+                color: 'var(--color-text-[var(--sys-text-primary)])',
                 fontSize: '0.875rem',
               }}
             />

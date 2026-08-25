@@ -50,7 +50,7 @@ export const MitreMatrixPage: React.FC = () => {
               <Grid className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">MITRE ATT&CK Enterprise Matrix</h1>
+              <h1 className="text-2xl font-bold text-[var(--sys-text-primary)] tracking-tight">MITRE ATT&CK Enterprise Matrix</h1>
               <p className="text-sm text-slate-400 mt-0.5">
                 Tactics, techniques, and real-time detection coverage across the cyber kill chain
               </p>
@@ -80,7 +80,7 @@ export const MitreMatrixPage: React.FC = () => {
               <Layers className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-white">{matrixData.columns.length}</div>
+              <div className="text-2xl font-bold text-[var(--sys-text-primary)]">{matrixData.columns.length}</div>
               <div className="text-xs text-slate-400 font-medium">Enterprise Tactics</div>
             </div>
           </div>
@@ -90,7 +90,7 @@ export const MitreMatrixPage: React.FC = () => {
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-white">{matrixData.total_techniques}</div>
+              <div className="text-2xl font-bold text-[var(--sys-text-primary)]">{matrixData.total_techniques}</div>
               <div className="text-xs text-slate-400 font-medium">Mapped Techniques</div>
             </div>
           </div>
@@ -131,7 +131,7 @@ export const MitreMatrixPage: React.FC = () => {
                   <span className="text-[10px] font-mono text-indigo-400 font-semibold block">
                     {col.tactic.id}
                   </span>
-                  <h3 className="text-xs font-bold text-white truncate" title={col.tactic.name}>
+                  <h3 className="text-xs font-bold text-[var(--sys-text-primary)] truncate" title={col.tactic.name}>
                     {col.tactic.name}
                   </h3>
                   <span className="text-[10px] text-slate-500 font-mono mt-0.5 block">
@@ -162,7 +162,7 @@ export const MitreMatrixPage: React.FC = () => {
                             </span>
                           )}
                         </div>
-                        <div className="text-xs font-medium text-slate-200 group-hover:text-white line-clamp-2 leading-snug">
+                        <div className="text-xs font-medium text-slate-200 group-hover:text-[var(--sys-text-primary)] line-clamp-2 leading-snug">
                           {tech.name}
                         </div>
                       </div>
@@ -190,7 +190,7 @@ export const MitreMatrixPage: React.FC = () => {
                     {selectedTechnique.tactic.name} ({selectedTechnique.tactic.id})
                   </span>
                 </div>
-                <h3 className="text-lg font-bold text-white mt-1">
+                <h3 className="text-lg font-bold text-[var(--sys-text-primary)] mt-1">
                   {selectedTechnique.technique.name}
                 </h3>
               </div>

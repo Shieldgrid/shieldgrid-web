@@ -19,7 +19,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     return (
       <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-critical)' }}>
         <h2>Access Denied</h2>
-        <p style={{ color: 'var(--color-text-secondary)', marginTop: '0.5rem' }}>
+        <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', marginTop: '0.5rem' }}>
           This section requires administrative privileges (role: {requireRole}).
         </p>
       </div>

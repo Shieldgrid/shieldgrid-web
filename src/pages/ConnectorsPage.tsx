@@ -32,7 +32,7 @@ export default function ConnectorsPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: 0 }}>Connector Integrations</h1>
-            <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+            <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.875rem', marginTop: '0.25rem' }}>
               System connectivity, health status, and healthcheck telemetry for registered security connectors.
             </p>
           </div>
@@ -68,7 +68,7 @@ export default function ConnectorsPage() {
                 <div
                   key={conn.id}
                   style={{
-                    background: 'var(--color-bg-surface)',
+                    background: 'var(--color-bg-[var(--sys-bg-surface)])',
                     border: '1px solid var(--color-border)',
                     borderRadius: 'var(--radius-lg)',
                     padding: '1.5rem',
@@ -96,7 +96,7 @@ export default function ConnectorsPage() {
                       </span>
                     </div>
 
-                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-[var(--sys-text-secondary)])' }}>
                       Ingests alert and endpoint telemetry directly into Shieldgrid Core.
                     </p>
 
@@ -117,7 +117,7 @@ export default function ConnectorsPage() {
                     )}
                   </div>
 
-                  <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                  <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem', fontSize: '0.75rem', color: 'var(--color-text-[var(--sys-text-muted)])' }}>
                     Status checked live via <code>/health</code>
                   </div>
                 </div>

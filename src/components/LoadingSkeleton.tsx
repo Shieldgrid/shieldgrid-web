@@ -14,7 +14,7 @@ export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({ count = 3, hei
           style={{
             height,
             borderRadius: 'var(--radius-md)',
-            background: 'var(--color-bg-surface)',
+            background: 'var(--color-bg-[var(--sys-bg-surface)])',
             border: '1px solid var(--color-border)',
             opacity: 0.6,
             animation: 'pulse 1.5s infinite ease-in-out',

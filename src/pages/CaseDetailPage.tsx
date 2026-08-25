@@ -202,8 +202,8 @@ export default function CaseDetailPage() {
     if (action === 'action_success') return { label: 'SUCCESS', color: 'var(--color-accent)' };
     if (action === 'action_timeout') return { label: 'TIMEOUT', color: '#f59e0b' };
     if (action === 'action_failure') return { label: 'FAILED', color: 'var(--color-critical)' };
-    if (action === 'action_request') return { label: 'REQUESTED', color: 'var(--color-text-muted)' };
-    return { label: action.toUpperCase(), color: 'var(--color-text-muted)' };
+    if (action === 'action_request') return { label: 'REQUESTED', color: 'var(--color-text-[var(--sys-text-muted)])' };
+    return { label: action.toUpperCase(), color: 'var(--color-text-[var(--sys-text-muted)])' };
   };
 
   return (
@@ -236,7 +236,7 @@ export default function CaseDetailPage() {
             {/* Header Card */}
             <div
               style={{
-                background: 'var(--color-bg-surface)',
+                background: 'var(--color-bg-[var(--sys-bg-surface)])',
                 border: '1px solid var(--color-border)',
                 borderRadius: 'var(--radius-lg)',
                 padding: '1.5rem',
@@ -248,11 +248,11 @@ export default function CaseDetailPage() {
               }}
             >
               <div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-[var(--sys-text-muted)])', marginBottom: '0.25rem' }}>
                   CASE ID: <code style={{ color: 'var(--color-accent)' }}>{caseData.id}</code>
                 </div>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>{caseData.title}</h1>
-                <div style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginTop: '0.5rem' }}>
+                <div style={{ fontSize: '0.875rem', color: 'var(--color-text-[var(--sys-text-secondary)])', marginTop: '0.5rem' }}>
                   Created: {new Date(caseData.created_at).toLocaleString()} &bull; Last Updated: {new Date(caseData.updated_at).toLocaleString()}
                 </div>
               </div>
@@ -260,7 +260,7 @@ export default function CaseDetailPage() {
               {/* Status & Assign Controls */}
               <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', marginBottom: '0.2rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-[var(--sys-text-muted)])', marginBottom: '0.2rem' }}>
                     STATUS
                   </label>
                   <select
@@ -270,9 +270,9 @@ export default function CaseDetailPage() {
                     style={{
                       padding: '0.4rem 0.75rem',
                       borderRadius: 'var(--radius-md)',
-                      background: 'var(--color-bg-base)',
+                      background: 'var(--color-bg-[var(--sys-bg-base)])',
                       border: '1px solid var(--color-border)',
-                      color: 'var(--color-text-primary)',
+                      color: 'var(--color-text-[var(--sys-text-primary)])',
                       fontSize: '0.875rem',
                     }}
                   >
@@ -284,11 +284,11 @@ export default function CaseDetailPage() {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', marginBottom: '0.2rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-[var(--sys-text-muted)])', marginBottom: '0.2rem' }}>
                     ASSIGNED TO
                   </label>
                   {caseData.assigned_to ? (
-                    <span style={{ fontSize: '0.875rem', color: 'var(--color-text-primary)', fontWeight: 600 }}>
+                    <span style={{ fontSize: '0.875rem', color: 'var(--color-text-[var(--sys-text-primary)])', fontWeight: 600 }}>
                       {caseData.assigned_to.slice(0, 8)}...
                     </span>
                   ) : (
@@ -316,7 +316,7 @@ export default function CaseDetailPage() {
             {/* ── Response Actions Section ──────────────────────────────── */}
             <div
               style={{
-                background: 'var(--color-bg-surface)',
+                background: 'var(--color-bg-[var(--sys-bg-surface)])',
                 border: '1px solid rgba(239,68,68,0.3)',
                 borderRadius: 'var(--radius-lg)',
                 padding: '1.5rem',
@@ -331,7 +331,7 @@ export default function CaseDetailPage() {
                     <span style={{ fontSize: '1.1rem' }}>🛡️</span>
                     <h3 style={{ margin: 0 }}>Response Actions</h3>
                   </div>
-                  <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', margin: 0 }}>
+                  <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.875rem', margin: 0 }}>
                     Execute network isolation actions against an endpoint via Velociraptor. Requires Admin role.
                     <br/>
                     {availableClientIds.length === 0 && (
@@ -396,7 +396,7 @@ export default function CaseDetailPage() {
               {/* Action History */}
               {actionHistory.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-[var(--sys-text-muted)])', letterSpacing: '0.05em' }}>
                     ACTION HISTORY ({actionHistory.length})
                   </div>
                   {actionHistory.map((log) => {
@@ -407,7 +407,7 @@ export default function CaseDetailPage() {
                         style={{
                           padding: '0.75rem 1rem',
                           borderRadius: 'var(--radius-md)',
-                          background: 'var(--color-bg-base)',
+                          background: 'var(--color-bg-[var(--sys-bg-base)])',
                           border: '1px solid var(--color-border)',
                           display: 'flex',
                           alignItems: 'flex-start',
@@ -431,11 +431,11 @@ export default function CaseDetailPage() {
                           {badge.label}
                         </span>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <code style={{ color: 'var(--color-text-secondary)', wordBreak: 'break-all', fontSize: '0.75rem' }}>
+                          <code style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', wordBreak: 'break-all', fontSize: '0.75rem' }}>
                             {log.target}
                           </code>
                         </div>
-                        <span style={{ color: 'var(--color-text-muted)', whiteSpace: 'nowrap', fontSize: '0.72rem', flexShrink: 0 }}>
+                        <span style={{ color: 'var(--color-text-[var(--sys-text-muted)])', whiteSpace: 'nowrap', fontSize: '0.72rem', flexShrink: 0 }}>
                           {new Date(log.timestamp).toLocaleString()}
                         </span>
                       </div>
@@ -443,7 +443,7 @@ export default function CaseDetailPage() {
                   })}
                 </div>
               ) : (
-                <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', fontSize: '0.875rem', margin: 0 }}>
+                <p style={{ color: 'var(--color-text-[var(--sys-text-muted)])', fontStyle: 'italic', fontSize: '0.875rem', margin: 0 }}>
                   No response actions have been executed for this case yet.
                 </p>
               )}
@@ -452,7 +452,7 @@ export default function CaseDetailPage() {
             {/* ── Case Detail Tabs: Alerts / Tasks / Observables / Templates ──── */}
             <div
               style={{
-                background: 'var(--color-bg-surface)',
+                background: 'var(--color-bg-[var(--sys-bg-surface)])',
                 border: '1px solid var(--color-border)',
                 borderRadius: 'var(--radius-lg)',
                 padding: '1.5rem',
@@ -477,7 +477,7 @@ export default function CaseDetailPage() {
                       background: 'transparent',
                       border: 'none',
                       borderBottom: activeDetailTab === tab.key ? '2px solid var(--color-accent)' : '2px solid transparent',
-                      color: activeDetailTab === tab.key ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                      color: activeDetailTab === tab.key ? 'var(--color-accent)' : 'var(--color-text-[var(--sys-text-secondary)])',
                       fontSize: '0.85rem',
                       fontWeight: activeDetailTab === tab.key ? 600 : 400,
                       cursor: 'pointer',
@@ -521,7 +521,7 @@ export default function CaseDetailPage() {
                     </button>
                   </div>
                   {attachedAlertIds.length === 0 ? (
-                    <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', padding: '1rem 0' }}>
+                    <p style={{ color: 'var(--color-text-[var(--sys-text-muted)])', fontStyle: 'italic', padding: '1rem 0' }}>
                       No alerts currently linked to this case. Click "+ Link Alert" to attach evidence from sensor queue.
                     </p>
                   ) : (
@@ -534,7 +534,7 @@ export default function CaseDetailPage() {
                             style={{
                               padding: '1rem',
                               borderRadius: 'var(--radius-md)',
-                              background: 'var(--color-bg-base)',
+                              background: 'var(--color-bg-[var(--sys-bg-base)])',
                               border: '1px solid var(--color-border)',
                               display: 'flex',
                               alignItems: 'center',
@@ -545,7 +545,7 @@ export default function CaseDetailPage() {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <code style={{ color: 'var(--color-accent)', fontSize: '0.85rem' }}>{alertId}</code>
                                 {obj && (
-                                  <span style={{ fontSize: '0.85rem', color: 'var(--color-text-primary)' }}>
+                                  <span style={{ fontSize: '0.85rem', color: 'var(--color-text-[var(--sys-text-primary)])' }}>
                                     ({obj.connector_id} &bull; {obj.source})
                                   </span>
                                 )}
@@ -554,11 +554,11 @@ export default function CaseDetailPage() {
                                 <pre
                                   style={{
                                     marginTop: '0.5rem',
-                                    background: 'var(--color-bg-surface)',
+                                    background: 'var(--color-bg-[var(--sys-bg-surface)])',
                                     padding: '0.5rem',
                                     borderRadius: '4px',
                                     fontSize: '0.7rem',
-                                    color: 'var(--color-text-secondary)',
+                                    color: 'var(--color-text-[var(--sys-text-secondary)])',
                                     overflowX: 'auto',
                                     maxHeight: '100px',
                                   }}
@@ -626,7 +626,7 @@ export default function CaseDetailPage() {
                           style={{
                             padding: '1rem',
                             borderRadius: 'var(--radius-md)',
-                            background: 'var(--color-bg-base)',
+                            background: 'var(--color-bg-[var(--sys-bg-base)])',
                             border: '1px solid var(--color-border)',
                             display: 'flex',
                             justifyContent: 'space-between',
@@ -647,8 +647,8 @@ export default function CaseDetailPage() {
                               </span>
                               <strong style={{ fontSize: '0.9rem' }}>{task.title}</strong>
                             </div>
-                            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>{task.description}</p>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+                            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-[var(--sys-text-secondary)])' }}>{task.description}</p>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-[var(--sys-text-muted)])', marginTop: '0.5rem' }}>
                               Assigned to: {task.assigned_to || 'Unassigned'} • Created: {new Date(task.created_at).toLocaleDateString()}
                             </div>
                           </div>
@@ -660,10 +660,10 @@ export default function CaseDetailPage() {
                             style={{
                               padding: '0.25rem 0.5rem',
                               borderRadius: 'var(--radius-sm)',
-                              background: 'var(--color-bg-surface)',
+                              background: 'var(--color-bg-[var(--sys-bg-surface)])',
                               border: '1px solid var(--color-border)',
                               fontSize: '0.75rem',
-                              color: 'var(--color-text-primary)',
+                              color: 'var(--color-text-[var(--sys-text-primary)])',
                             }}
                           >
                             <option value="pending">Pending</option>
@@ -676,25 +676,25 @@ export default function CaseDetailPage() {
                   </div>
                   {/* New Task Form */}
                   {showNewTask && (
-                    <div style={{ padding: '1rem', background: 'var(--color-bg-base)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--color-border)' }}>
+                    <div style={{ padding: '1rem', background: 'var(--color-bg-[var(--sys-bg-base)])', borderRadius: 'var(--radius-md)', border: '1px dashed var(--color-border)' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <input
                           placeholder="Task title"
                           value={newTask.title}
                           onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                          style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-surface)', color: 'var(--color-text-primary)', fontSize: '0.875rem' }}
+                          style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-[var(--sys-bg-surface)])', color: 'var(--color-text-[var(--sys-text-primary)])', fontSize: '0.875rem' }}
                         />
                         <textarea
                           placeholder="Description (optional)"
                           value={newTask.description}
                           onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
                           rows={2}
-                          style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-surface)', color: 'var(--color-text-primary)', fontSize: '0.85rem', resize: 'vertical' }}
+                          style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-[var(--sys-bg-surface)])', color: 'var(--color-text-[var(--sys-text-primary)])', fontSize: '0.85rem', resize: 'vertical' }}
                         />
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                           <button
                             onClick={() => setShowNewTask(false)}
-                            style={{ padding: '0.375rem 0.75rem', background: 'transparent', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text-secondary)', fontSize: '0.8rem', cursor: 'pointer' }}
+                            style={{ padding: '0.375rem 0.75rem', background: 'transparent', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.8rem', cursor: 'pointer' }}
                           >
                             Cancel
                           </button>
@@ -752,7 +752,7 @@ export default function CaseDetailPage() {
                           style={{
                             padding: '1rem',
                             borderRadius: 'var(--radius-md)',
-                            background: 'var(--color-bg-base)',
+                            background: 'var(--color-bg-[var(--sys-bg-base)])',
                             border: '1px solid var(--color-border)',
                             display: 'flex',
                             justifyContent: 'space-between',
@@ -771,7 +771,7 @@ export default function CaseDetailPage() {
                             }}>
                               TLP:{obs.tlp}
                             </span>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>{obs.type}</span>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-[var(--sys-text-muted)])', textTransform: 'uppercase' }}>{obs.type}</span>
                             <code style={{ fontSize: '0.85rem', color: 'var(--color-accent)' }}>{obs.value}</code>
                             {obs.tags.map(tag => (
                               <span key={tag} style={{ padding: '0.1rem 0.375rem', background: 'rgba(99,102,241,0.1)', borderRadius: '10px', fontSize: '0.7rem', color: '#818cf8' }}>
@@ -779,19 +779,19 @@ export default function CaseDetailPage() {
                               </span>
                             ))}
                           </div>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{new Date(obs.created_at).toLocaleDateString()}</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-[var(--sys-text-muted)])' }}>{new Date(obs.created_at).toLocaleDateString()}</span>
                         </div>
                       );
                     })}
                   </div>
                   {/* New Observable Form */}
                   {showNewObservable && (
-                    <div style={{ padding: '1rem', background: 'var(--color-bg-base)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--color-border)' }}>
+                    <div style={{ padding: '1rem', background: 'var(--color-bg-[var(--sys-bg-base)])', borderRadius: 'var(--radius-md)', border: '1px dashed var(--color-border)' }}>
                       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                         <select
                           value={newObservable.type}
                           onChange={(e) => setNewObservable({ ...newObservable, type: e.target.value as any })}
-                          style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-surface)', color: 'var(--color-text-primary)', fontSize: '0.85rem' }}
+                          style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-[var(--sys-bg-surface)])', color: 'var(--color-text-[var(--sys-text-primary)])', fontSize: '0.85rem' }}
                         >
                           <option value="ip">IP</option>
                           <option value="domain">Domain</option>
@@ -804,12 +804,12 @@ export default function CaseDetailPage() {
                           placeholder="Observable value"
                           value={newObservable.value}
                           onChange={(e) => setNewObservable({ ...newObservable, value: e.target.value })}
-                          style={{ flex: 1, minWidth: '200px', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-surface)', color: 'var(--color-text-primary)', fontSize: '0.85rem', fontFamily: 'monospace' }}
+                          style={{ flex: 1, minWidth: '200px', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-[var(--sys-bg-surface)])', color: 'var(--color-text-[var(--sys-text-primary)])', fontSize: '0.85rem', fontFamily: 'monospace' }}
                         />
                         <select
                           value={newObservable.tlp}
                           onChange={(e) => setNewObservable({ ...newObservable, tlp: e.target.value as any })}
-                          style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-surface)', color: 'var(--color-text-primary)', fontSize: '0.85rem' }}
+                          style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-[var(--sys-bg-surface)])', color: 'var(--color-text-[var(--sys-text-primary)])', fontSize: '0.85rem' }}
                         >
                           <option value="white">TLP:White</option>
                           <option value="green">TLP:Green</option>
@@ -820,13 +820,13 @@ export default function CaseDetailPage() {
                           placeholder="Tags (comma-separated)"
                           value={newObservable.tags}
                           onChange={(e) => setNewObservable({ ...newObservable, tags: e.target.value })}
-                          style={{ flex: 1, minWidth: '150px', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-surface)', color: 'var(--color-text-primary)', fontSize: '0.85rem' }}
+                          style={{ flex: 1, minWidth: '150px', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-[var(--sys-bg-surface)])', color: 'var(--color-text-[var(--sys-text-primary)])', fontSize: '0.85rem' }}
                         />
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
                         <button
                           onClick={() => setShowNewObservable(false)}
-                          style={{ padding: '0.375rem 0.75rem', background: 'transparent', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text-secondary)', fontSize: '0.8rem', cursor: 'pointer' }}
+                          style={{ padding: '0.375rem 0.75rem', background: 'transparent', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.8rem', cursor: 'pointer' }}
                         >
                           Cancel
                         </button>
@@ -869,7 +869,7 @@ export default function CaseDetailPage() {
                       style={{
                         padding: '1rem',
                         borderRadius: 'var(--radius-md)',
-                        background: 'var(--color-bg-base)',
+                        background: 'var(--color-bg-[var(--sys-bg-base)])',
                         border: '1px solid var(--color-border)',
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -883,7 +883,7 @@ export default function CaseDetailPage() {
                             {tpl.category}
                           </span>
                         </div>
-                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>{tpl.description}</p>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-[var(--sys-text-secondary)])' }}>{tpl.description}</p>
                       </div>
                       <button
                         style={{
@@ -926,7 +926,7 @@ export default function CaseDetailPage() {
               style={{
                 width: '100%',
                 maxWidth: '480px',
-                background: 'var(--color-bg-surface)',
+                background: 'var(--color-bg-[var(--sys-bg-surface)])',
                 border: `1px solid ${actionType === 'isolate' ? 'rgba(239,68,68,0.4)' : 'rgba(16,185,129,0.4)'}`,
                 borderRadius: 'var(--radius-lg)',
                 padding: '2rem',
@@ -943,7 +943,7 @@ export default function CaseDetailPage() {
                     {actionType === 'isolate' ? 'Isolate Endpoint' : 'Unisolate Endpoint'}
                   </h2>
                 </div>
-                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-[var(--sys-text-secondary)])' }}>
                   {actionType === 'isolate'
                     ? 'This will apply nftables network quarantine rules via Velociraptor, cutting off all traffic except DNS and Velociraptor server access.'
                     : 'This will remove the nftables quarantine rules via Velociraptor, restoring full network access.'}
@@ -983,9 +983,9 @@ export default function CaseDetailPage() {
                     width: '100%',
                     padding: '0.625rem 0.875rem',
                     borderRadius: 'var(--radius-md)',
-                    background: 'var(--color-bg-base)',
+                    background: 'var(--color-bg-[var(--sys-bg-base)])',
                     border: '1px solid var(--color-border)',
-                    color: 'var(--color-text-primary)',
+                    color: 'var(--color-text-[var(--sys-text-primary)])',
                     fontSize: '0.875rem',
                     fontFamily: 'monospace',
                     boxSizing: 'border-box',
@@ -995,7 +995,7 @@ export default function CaseDetailPage() {
                     <option key={id} value={id}>{id}</option>
                   ))}
                 </select>
-                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-[var(--sys-text-muted)])', marginTop: '0.25rem' }}>
                   Connector: <code>{connectorId}</code>
                 </div>
               </div>
@@ -1041,9 +1041,9 @@ export default function CaseDetailPage() {
                   }}>
                     {actionResult.status === 'success' ? '✅ Success' : actionResult.status === 'timeout' ? '⏱ Timeout — Outcome Unknown' : '❌ Failed'}
                   </div>
-                  <div style={{ color: 'var(--color-text-secondary)' }}>{actionResult.detail}</div>
+                  <div style={{ color: 'var(--color-text-[var(--sys-text-secondary)])' }}>{actionResult.detail}</div>
                   {actionResult.status === 'timeout' && (
-                    <div style={{ marginTop: '0.375rem', color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
+                    <div style={{ marginTop: '0.375rem', color: 'var(--color-text-[var(--sys-text-muted)])', fontSize: '0.75rem' }}>
                       The action was dispatched but the endpoint did not confirm within 30s. It may still complete. Verify manually in Velociraptor.
                     </div>
                   )}
@@ -1061,7 +1061,7 @@ export default function CaseDetailPage() {
                     background: 'transparent',
                     border: '1px solid var(--color-border)',
                     borderRadius: 'var(--radius-md)',
-                    color: 'var(--color-text-secondary)',
+                    color: 'var(--color-text-[var(--sys-text-secondary)])',
                     cursor: actionExecuting ? 'not-allowed' : 'pointer',
                   }}
                 >
@@ -1115,7 +1115,7 @@ export default function CaseDetailPage() {
               style={{
                 width: '100%',
                 maxWidth: '500px',
-                background: 'var(--color-bg-surface)',
+                background: 'var(--color-bg-[var(--sys-bg-surface)])',
                 border: '1px solid var(--color-border)',
                 borderRadius: 'var(--radius-lg)',
                 padding: '2rem',
@@ -1123,7 +1123,7 @@ export default function CaseDetailPage() {
             >
               <h3 style={{ marginBottom: '1rem' }}>Attach Alert to Case</h3>
               {unattachedAlerts.length === 0 ? (
-                <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>
+                <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.875rem' }}>
                   No unlinked alerts available in the queue.
                 </p>
               ) : (
@@ -1139,9 +1139,9 @@ export default function CaseDetailPage() {
                         width: '100%',
                         padding: '0.625rem 0.875rem',
                         borderRadius: 'var(--radius-md)',
-                        background: 'var(--color-bg-base)',
+                        background: 'var(--color-bg-[var(--sys-bg-base)])',
                         border: '1px solid var(--color-border)',
-                        color: 'var(--color-text-primary)',
+                        color: 'var(--color-text-[var(--sys-text-primary)])',
                         fontSize: '0.85rem',
                       }}
                     >
@@ -1163,7 +1163,7 @@ export default function CaseDetailPage() {
                         background: 'transparent',
                         border: '1px solid var(--color-border)',
                         borderRadius: 'var(--radius-md)',
-                        color: 'var(--color-text-secondary)',
+                        color: 'var(--color-text-[var(--sys-text-secondary)])',
                         cursor: 'pointer',
                       }}
                     >

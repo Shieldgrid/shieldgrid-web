@@ -36,7 +36,7 @@ export default function AuditPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: 0 }}>System Audit Trail</h1>
-            <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+            <p style={{ color: 'var(--color-text-[var(--sys-text-secondary)])', fontSize: '0.875rem', marginTop: '0.25rem' }}>
               Immutable record of administrative, authentication, and case management actions.
             </p>
           </div>
@@ -44,10 +44,10 @@ export default function AuditPage() {
             onClick={loadLogs}
             style={{
               padding: '0.5rem 1rem',
-              background: 'var(--color-bg-surface)',
+              background: 'var(--color-bg-[var(--sys-bg-surface)])',
               border: '1px solid var(--color-border)',
               borderRadius: 'var(--radius-md)',
-              color: 'var(--color-text-primary)',
+              color: 'var(--color-text-[var(--sys-text-primary)])',
               fontSize: '0.875rem',
               cursor: 'pointer',
             }}
@@ -68,7 +68,7 @@ export default function AuditPage() {
         ) : (
           <div
             style={{
-              background: 'var(--color-bg-surface)',
+              background: 'var(--color-bg-[var(--sys-bg-surface)])',
               border: '1px solid var(--color-border)',
               borderRadius: 'var(--radius-lg)',
               overflow: 'hidden',
@@ -76,17 +76,17 @@ export default function AuditPage() {
           >
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
               <thead>
-                <tr style={{ background: 'var(--color-bg-base)', borderBottom: '1px solid var(--color-border)' }}>
-                  <th style={{ padding: '0.875rem 1.25rem', color: 'var(--color-text-secondary)' }}>TIMESTAMP</th>
-                  <th style={{ padding: '0.875rem 1.25rem', color: 'var(--color-text-secondary)' }}>ACTION</th>
-                  <th style={{ padding: '0.875rem 1.25rem', color: 'var(--color-text-secondary)' }}>ACTOR ID</th>
-                  <th style={{ padding: '0.875rem 1.25rem', color: 'var(--color-text-secondary)' }}>TARGET</th>
+                <tr style={{ background: 'var(--color-bg-[var(--sys-bg-base)])', borderBottom: '1px solid var(--color-border)' }}>
+                  <th style={{ padding: '0.875rem 1.25rem', color: 'var(--color-text-[var(--sys-text-secondary)])' }}>TIMESTAMP</th>
+                  <th style={{ padding: '0.875rem 1.25rem', color: 'var(--color-text-[var(--sys-text-secondary)])' }}>ACTION</th>
+                  <th style={{ padding: '0.875rem 1.25rem', color: 'var(--color-text-[var(--sys-text-secondary)])' }}>ACTOR ID</th>
+                  <th style={{ padding: '0.875rem 1.25rem', color: 'var(--color-text-[var(--sys-text-secondary)])' }}>TARGET</th>
                 </tr>
               </thead>
               <tbody>
                 {logs.map((log) => (
                   <tr key={log.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                    <td style={{ padding: '0.875rem 1.25rem', color: 'var(--color-text-secondary)' }}>
+                    <td style={{ padding: '0.875rem 1.25rem', color: 'var(--color-text-[var(--sys-text-secondary)])' }}>
                       {new Date(log.timestamp).toLocaleString()}
                     </td>
                     <td style={{ padding: '0.875rem 1.25rem' }}>
@@ -94,7 +94,7 @@ export default function AuditPage() {
                         style={{
                           padding: '0.2rem 0.5rem',
                           borderRadius: '4px',
-                          background: 'var(--color-bg-elevated)',
+                          background: 'var(--color-bg-[var(--sys-bg-elevated)])',
                           color: 'var(--color-accent)',
                           fontWeight: 600,
                           fontSize: '0.75rem',
@@ -104,11 +104,11 @@ export default function AuditPage() {
                         {log.action}
                       </span>
                     </td>
-                    <td style={{ padding: '0.875rem 1.25rem', color: 'var(--color-text-primary)' }}>
+                    <td style={{ padding: '0.875rem 1.25rem', color: 'var(--color-text-[var(--sys-text-primary)])' }}>
                       {log.actor_id ? <code style={{ fontSize: '0.8rem' }}>{log.actor_id}</code> : 'System'}
                     </td>
-                    <td style={{ padding: '0.875rem 1.25rem', color: 'var(--color-text-primary)' }}>
-                      <code style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>{log.target}</code>
+                    <td style={{ padding: '0.875rem 1.25rem', color: 'var(--color-text-[var(--sys-text-primary)])' }}>
+                      <code style={{ fontSize: '0.8rem', color: 'var(--color-text-[var(--sys-text-secondary)])' }}>{log.target}</code>
                     </td>
                   </tr>
                 ))}

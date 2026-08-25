@@ -59,8 +59,8 @@ export default function SchedulerPage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#E0E0E0', margin: 0 }}>Scheduler</h1>
-          <p style={{ fontSize: '0.7rem', color: '#555560', fontFamily: 'var(--font-mono)', margin: '0.25rem 0 0' }}>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--sys-text-primary)', margin: 0 }}>Scheduler</h1>
+          <p style={{ fontSize: '0.7rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)', margin: '0.25rem 0 0' }}>
             AUTOMATION TASKS // PERIODIC SCANS & INGESTION
           </p>
         </div>
@@ -75,9 +75,9 @@ export default function SchedulerPage() {
       </div>
 
       {error && (
-        <div style={{ padding: '0.5rem 0.75rem', background: 'rgba(211,47,47,0.1)', border: '1px solid #D32F2F', borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '0.75rem', color: '#D32F2F', fontFamily: 'var(--font-mono)' }}>{error}</span>
-          <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#D32F2F', cursor: 'pointer' }}>
+        <div style={{ padding: '0.5rem 0.75rem', background: 'rgba(211,47,47,0.1)', border: '1px solid var(--color-critical)', borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--color-critical)', fontFamily: 'var(--font-mono)' }}>{error}</span>
+          <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: 'var(--color-critical)', cursor: 'pointer' }}>
             <X size={12} />
           </button>
         </div>
@@ -91,7 +91,7 @@ export default function SchedulerPage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
             <div>
-              <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>NAME</label>
+              <label style={{ fontSize: '0.6rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)' }}>NAME</label>
               <input
                 placeholder="schedule name"
                 value={newSchedule.name}
@@ -101,7 +101,7 @@ export default function SchedulerPage() {
               />
             </div>
             <div>
-              <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>CONNECTOR</label>
+              <label style={{ fontSize: '0.6rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)' }}>CONNECTOR</label>
               <select
                 value={newSchedule.connector_id}
                 onChange={(e) => setNewSchedule({ ...newSchedule, connector_id: e.target.value })}
@@ -114,7 +114,7 @@ export default function SchedulerPage() {
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>ACTION</label>
+              <label style={{ fontSize: '0.6rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)' }}>ACTION</label>
               <select
                 value={newSchedule.action_type}
                 onChange={(e) => setNewSchedule({ ...newSchedule, action_type: e.target.value })}
@@ -126,7 +126,7 @@ export default function SchedulerPage() {
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>TRIGGER</label>
+              <label style={{ fontSize: '0.6rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)' }}>TRIGGER</label>
               <select
                 value={newSchedule.trigger_type}
                 onChange={(e) => setNewSchedule({ ...newSchedule, trigger_type: e.target.value })}
@@ -139,7 +139,7 @@ export default function SchedulerPage() {
             </div>
             {newSchedule.trigger_type === 'interval' && (
               <div>
-                <label style={{ fontSize: '0.6rem', color: '#555560', fontFamily: 'var(--font-mono)' }}>INTERVAL (SEC)</label>
+                <label style={{ fontSize: '0.6rem', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)' }}>INTERVAL (SEC)</label>
                 <input
                   type="number"
                   value={newSchedule.interval_seconds}
@@ -159,7 +159,7 @@ export default function SchedulerPage() {
 
       {/* Schedules Table */}
       {loading ? (
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#555560', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>LOADING...</div>
+        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--sys-text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>LOADING...</div>
       ) : (
         <div className="table-container">
           <table>
@@ -177,10 +177,10 @@ export default function SchedulerPage() {
             <tbody>
               {schedules.map((s) => (
                 <tr key={s.id}>
-                  <td style={{ fontWeight: 600, color: '#E0E0E0' }}>{s.name}</td>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#8A8A96' }}>{s.connector_id}</td>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#8A8A96' }}>{s.action_type}</td>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#555560' }}>
+                  <td style={{ fontWeight: 600, color: 'var(--sys-text-primary)' }}>{s.name}</td>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--sys-text-secondary)' }}>{s.connector_id}</td>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--sys-text-secondary)' }}>{s.action_type}</td>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--sys-text-muted)' }}>
                     {s.trigger && s.trigger.type === 'interval' ? `every ${(s.trigger as any).seconds}s` : (s.trigger as any)?.expression || '---'}
                   </td>
                   <td>
@@ -188,17 +188,17 @@ export default function SchedulerPage() {
                       {s.enabled ? 'ACTIVE' : 'DISABLED'}
                     </span>
                   </td>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#555560' }}>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--sys-text-muted)' }}>
                     {s.next_run_at ? new Date(s.next_run_at).toLocaleString('en-US', { hour12: false }) : '---'}
                   </td>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#555560' }}>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--sys-text-muted)' }}>
                     {s.last_run_at ? new Date(s.last_run_at).toLocaleString('en-US', { hour12: false }) : '---'}
                   </td>
                 </tr>
               ))}
               {schedules.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', color: '#555560', padding: '1.5rem', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--sys-text-muted)', padding: '1.5rem', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
                     NO SCHEDULES CONFIGURED
                   </td>
                 </tr>
